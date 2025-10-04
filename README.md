@@ -37,12 +37,12 @@ The app includes comprehensive vocabulary from 12 lessons covering:
 
 2. **Install dependencies**
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. **Start development server**
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 4. **Open your browser**
@@ -50,13 +50,15 @@ The app includes comprehensive vocabulary from 12 lessons covering:
 
 ## 🛠️ Available Scripts
 
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build locally
-- `npm run type-check` - Run TypeScript type checking
-- `npm run lint` - Run ESLint code linting
-- `npm run lint:fix` - Fix ESLint issues automatically
-- `npm run deploy` - Deploy to GitHub Pages (requires setup)
+- `pnpm run dev` - Start development server with hot reload
+- `pnpm run build` - Build for production
+- `pnpm run preview` - Preview production build locally
+- `pnpm run type-check` - Run TypeScript type checking
+- `pnpm run lint` - Run ESLint code linting
+- `pnpm run lint:fix` - Fix ESLint issues automatically
+- `pnpm run test` - Run Vitest in watch mode during development
+- `pnpm run test:run` - Run the Vitest suite once (CI-friendly)
+- `pnpm run test:coverage` - Generate coverage reports (`coverage/` directory)
 
 ## 🎯 How to Use
 
@@ -138,9 +140,19 @@ The app is configured for automatic deployment to GitHub Pages when pushing to t
 ### Manual Deployment
 
 ```bash
-npm run build
-npm run deploy
+pnpm run build
+pnpm run deploy
 ```
+
+## 🧪 Testing Tips
+
+- Component tests live alongside the source (`src/components/*.{test.tsx}`) and use Vitest + Testing Library.
+- When debugging or running a single suite:
+  ```bash
+  pnpm vitest run src/components/ChineseLearningApp.test.tsx
+  ```
+- Coverage reports (HTML + lcov + text) are emitted to `coverage/` when you run `pnpm run test:coverage`.
+- The Vitest environment uses `jsdom`, so DOM APIs such as `document` and `window` are available.
 
 ## 🌍 Browser Support
 

@@ -548,7 +548,7 @@ const ChineseLearningApp = () => {
 
         {/* Flashcard */}
         {currentWord && (
-          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-3xl mx-auto mb-8">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-3xl mx-auto mb-8" data-testid="flashcard-section">
             {/* Progress */}
             <div className="text-center mb-6">
               <span className="text-sm text-gray-600">
@@ -566,11 +566,15 @@ const ChineseLearningApp = () => {
             {/* Card Content */}
             <div
               className="text-center cursor-pointer min-h-[350px] flex flex-col justify-center border-2 border-dashed border-gray-200 rounded-lg hover:border-red-300 transition-colors"
+              data-testid="flashcard-card"
+              role="button"
+              tabIndex={0}
+              aria-label="Flashcard"
               onClick={() => setShowAnswer(!showAnswer)}
             >
               {!showAnswer ? (
                 <div className="space-y-8">
-                  <div className="text-8xl font-bold text-red-800 mb-6 tracking-wide">
+                  <div className="text-8xl font-bold text-red-800 mb-6 tracking-wide" data-testid="flashcard-character">
                     {currentWord.characters}
                   </div>
                   <p className="text-gray-500 text-lg mt-12 animate-pulse">
@@ -579,7 +583,7 @@ const ChineseLearningApp = () => {
                 </div>
               ) : (
                 <div className="space-y-8">
-                  <div className="text-8xl font-bold text-red-800 mb-6 tracking-wide">
+                  <div className="text-8xl font-bold text-red-800 mb-6 tracking-wide" data-testid="flashcard-character">
                     {currentWord.characters}
                   </div>
                   <div className="text-3xl text-red-600 font-medium tracking-wider">
@@ -621,6 +625,7 @@ const ChineseLearningApp = () => {
                 onClick={prevCard}
                 className="bg-red-600 text-white p-4 rounded-full hover:bg-red-700 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105"
                 disabled={filteredVocabulary.length <= 1}
+                aria-label="Previous card"
               >
                 <ChevronLeft size={24} />
               </button>
@@ -629,6 +634,7 @@ const ChineseLearningApp = () => {
                 <button
                   onClick={shuffleCards}
                   className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 shadow-lg"
+                  aria-label="Shuffle cards"
                 >
                   <Shuffle size={18} />
                   Shuffle
@@ -636,6 +642,7 @@ const ChineseLearningApp = () => {
                 <button
                   onClick={resetCards}
                   className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2 shadow-lg"
+                  aria-label="Reset progress"
                 >
                   <RotateCcw size={18} />
                   Reset
@@ -646,6 +653,7 @@ const ChineseLearningApp = () => {
                 onClick={nextCard}
                 className="bg-red-600 text-white p-4 rounded-full hover:bg-red-700 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105"
                 disabled={filteredVocabulary.length <= 1}
+                aria-label="Next card"
               >
                 <ChevronRight size={24} />
               </button>
