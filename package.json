@@ -1,0 +1,55 @@
+{
+  "name": "traditional-chinese-study",
+  "version": "1.0.0",
+  "description": "Traditional Chinese Learning App - Interactive flashcards and writing practice for learning traditional Chinese characters",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "type-check": "tsc --noEmit",
+    "deploy": "gh-pages -d dist"
+  },
+  "keywords": [
+    "chinese",
+    "traditional-chinese",
+    "learning",
+    "flashcards",
+    "education",
+    "language-learning",
+    "react",
+    "typescript"
+  ],
+  "author": "William Wan",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/william10000/traditional-chinese-study.git"
+  },
+  "homepage": "https://william10000.github.io/traditional-chinese-study",
+  "dependencies": {
+    "lucide-react": "^0.447.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.37.0",
+    "@types/react": "^18.3.10",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.8.1",
+    "@typescript-eslint/parser": "^8.8.1",
+    "@vitejs/plugin-react": "^4.3.2",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.12.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.23",
+    "gh-pages": "^6.1.1",
+    "globals": "^16.4.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "3.4.14",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.8"
+  }
+}
