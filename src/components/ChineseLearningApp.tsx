@@ -2,11 +2,35 @@ import { useState, useEffect, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, RotateCcw, Printer, Shuffle, Check, X } from 'lucide-react';
 import { VocabularyWord, StudyStats } from '../types';
 
-const LESSONS = ['all', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'L10', 'L11', 'L12'];
+const ALL_OPTION = 'all';
 
-const VOCABULARY: VocabularyWord[] = [
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+
+const getUniqueSortedValues = (values: string[]) =>
+  Array.from(new Set(values)).sort((a, b) => collator.compare(a, b));
+
+const normalizeLesson = (lesson: string) => lesson.trim().toLowerCase();
+
+const formatLessonLabel = (lesson: string) => {
+  const normalized = lesson.trim();
+
+  const lessonMatch = normalized.match(/^L(\d+)$/i);
+  if (lessonMatch) {
+    return `Lesson ${normalized.toUpperCase()} 第${lessonMatch[1]}課`;
+  }
+
+  const testMatch = normalized.match(/^Test(\d+)$/i);
+  if (testMatch) {
+    return `Test ${testMatch[1]} 測驗${testMatch[1]}`;
+  }
+
+  return normalized;
+};
+
+export const VOCABULARY: VocabularyWord[] = [
   { pinyin: 'ā yí', characters: '阿姨', english: 'aunt', lesson: 'L12', book: 'B', level: 'K2' },
   { pinyin: 'bā', characters: '八', english: 'eight', lesson: 'L3', book: 'B', level: 'K2' },
+  
   { pinyin: 'bà ba', characters: '爸爸', english: 'dad', lesson: 'L2', book: 'B', level: 'K2' },
   { pinyin: 'bā yuè', characters: '八月', english: 'August', lesson: 'L6', book: 'B', level: 'K2' },
   { pinyin: 'bān', characters: '班', english: 'class', lesson: 'L3', book: 'B', level: 'K2' },
@@ -416,16 +440,93 @@ const VOCABULARY: VocabularyWord[] = [
 const ChineseLearningApp = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [selectedLesson, setSelectedLesson] = useState('all');
+  const [selectedLevel, setSelectedLevel] = useState<string>(ALL_OPTION);
+  const [selectedBook, setSelectedBook] = useState<string>(ALL_OPTION);
+  const [selectedLesson, setSelectedLesson] = useState<string>(ALL_OPTION);
   const [studyMode, setStudyMode] = useState<'sequential' | 'random'>('sequential');
   const [cardOrder, setCardOrder] = useState<number[]>([]);
   const [studyStats, setStudyStats] = useState<StudyStats>({ correct: 0, total: 0 });
 
+  const levelOptions = useMemo(
+    () => getUniqueSortedValues(VOCABULARY.map(word => word.level)),
+    []
+  );
+
+  const bookOptions = useMemo(() => {
+    if (selectedLevel === ALL_OPTION) {
+      return [] as string[];
+    }
+
+    return getUniqueSortedValues(
+      VOCABULARY.filter(word => word.level === selectedLevel).map(word => word.book)
+    );
+  }, [selectedLevel]);
+
+const lessonOptions = useMemo(() => {
+    if (selectedLevel === ALL_OPTION || selectedBook === ALL_OPTION) {
+      return [] as string[];
+    }
+
+    const lessonsByLevelAndBook = getUniqueSortedValues(
+      VOCABULARY.filter(
+        word => word.level === selectedLevel && word.book === selectedBook
+      ).map(word => word.lesson)
+    );
+
+    if (lessonsByLevelAndBook.length > 0) {
+      return lessonsByLevelAndBook;
+    }
+
+    return getUniqueSortedValues(
+      VOCABULARY.filter(word => word.level === selectedLevel).map(word => word.lesson)
+    );
+  }, [selectedLevel, selectedBook]);
+
   const filteredVocabulary = useMemo(() => {
-    return selectedLesson === 'all'
-      ? VOCABULARY
-      : VOCABULARY.filter(word => word.lesson === selectedLesson);
-  }, [selectedLesson]);
+    return VOCABULARY.filter(word => {
+      if (selectedLevel !== ALL_OPTION && word.level !== selectedLevel) {
+        return false;
+      }
+      if (selectedBook !== ALL_OPTION && word.book !== selectedBook) {
+        return false;
+      }
+      if (selectedLesson !== ALL_OPTION && word.lesson !== selectedLesson) {
+        return false;
+      }
+      return true;
+    });
+  }, [selectedLevel, selectedBook, selectedLesson]);
+
+  useEffect(() => {
+    setSelectedBook(ALL_OPTION);
+    setSelectedLesson(ALL_OPTION);
+  }, [selectedLevel]);
+
+  useEffect(() => {
+    setSelectedLesson(ALL_OPTION);
+  }, [selectedBook]);
+
+  const filterSummary = useMemo(() => {
+    if (selectedLevel === ALL_OPTION) {
+      return 'All Levels 所有程度';
+    }
+
+    const parts = [`Level ${selectedLevel} 程度`];
+
+    if (selectedBook !== ALL_OPTION) {
+      parts.push(`Book ${selectedBook} 冊`);
+    } else if (bookOptions.length > 0) {
+      parts.push('All Books 所有冊別');
+    }
+
+    if (selectedLesson !== ALL_OPTION) {
+      parts.push(formatLessonLabel(selectedLesson));
+    } else if (lessonOptions.length > 0) {
+      parts.push('All Lessons 所有課程');
+    }
+
+    return parts.join(' • ');
+  }, [selectedLevel, selectedBook, selectedLesson, bookOptions.length, lessonOptions.length]);
 
   // Initialize card order when vocabulary changes
   useEffect(() => {
@@ -722,19 +823,67 @@ const ChineseLearningApp = () => {
         )}
 
         {/* Controls Panel */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-            {/* Lesson Filter */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8" data-testid="filter-panel">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            {/* Level Filter */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Select Lesson:</label>
+              <label htmlFor="level-filter" className="block text-sm font-medium text-gray-700">Select Level:</label>
               <select
-                value={selectedLesson}
-                onChange={(e) => setSelectedLesson(e.target.value)}
+                id="level-filter"
+                value={selectedLevel}
+                onChange={(e) => setSelectedLevel(e.target.value)}
                 className="w-full px-3 py-2 border border-red-300 rounded-lg bg-white text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
               >
-                {LESSONS.map(lesson => (
+                <option value={ALL_OPTION}>All Levels 所有程度</option>
+                {levelOptions.map(level => (
+                  <option key={level} value={level}>
+                    Level {level}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Book Filter */}
+            <div className="space-y-2">
+              <label htmlFor="book-filter" className="block text-sm font-medium text-gray-700">Select Book:</label>
+              <select
+                id="book-filter"
+                value={selectedBook}
+                onChange={(e) => setSelectedBook(e.target.value)}
+                disabled={selectedLevel === ALL_OPTION}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                  selectedLevel === ALL_OPTION
+                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                    : 'bg-white text-red-800 border-red-300'
+                }`}
+              >
+                <option value={ALL_OPTION}>All Books 所有冊別</option>
+                {bookOptions.map(book => (
+                  <option key={book} value={book}>
+                    Book {book}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Lesson Filter */}
+            <div className="space-y-2">
+              <label htmlFor="lesson-filter" className="block text-sm font-medium text-gray-700">Select Lesson:</label>
+              <select
+                id="lesson-filter"
+                value={selectedLesson}
+                onChange={(e) => setSelectedLesson(e.target.value)}
+                disabled={selectedLevel === ALL_OPTION || selectedBook === ALL_OPTION}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                  selectedLevel === ALL_OPTION || selectedBook === ALL_OPTION
+                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                    : 'bg-white text-red-800 border-red-300'
+                }`}
+              >
+                <option value={ALL_OPTION}>All Lessons 所有課程</option>
+                {lessonOptions.map(lesson => (
                   <option key={lesson} value={lesson}>
-                    {lesson === 'all' ? 'All Lessons 所有課程' : `Lesson ${lesson} 第${lesson.slice(1)}課`}
+                    {formatLessonLabel(lesson)}
                   </option>
                 ))}
               </select>
@@ -746,7 +895,7 @@ const ChineseLearningApp = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => setStudyMode('sequential')}
-                  className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
                     studyMode === 'sequential'
                       ? 'bg-red-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -756,7 +905,7 @@ const ChineseLearningApp = () => {
                 </button>
                 <button
                   onClick={() => setStudyMode('random')}
-                  className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
                     studyMode === 'random'
                       ? 'bg-red-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -766,134 +915,180 @@ const ChineseLearningApp = () => {
                 </button>
               </div>
             </div>
+          </div>
 
-            {/* Print Worksheet */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Writing Practice:</label>
-              <button
-                onClick={generateWorksheet}
-                className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-md"
-              >
-                <Printer size={18} />
-                Print Worksheet
-              </button>
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+            <div
+              className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 px-3 py-2 rounded-lg"
+              data-testid="filter-summary"
+            >
+              <span className="font-semibold">Current Filter:</span>
+              <span>{filterSummary}</span>
             </div>
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 px-3 py-2 rounded-lg justify-between">
+              <span className="font-semibold">Matching Words:</span>
+              <span data-testid="filter-count" className="text-lg font-bold">{filteredVocabulary.length}</span>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <button
+              onClick={generateWorksheet}
+              className="w-full md:w-auto bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-md"
+            >
+              <Printer size={18} />
+              Print Worksheet
+            </button>
           </div>
         </div>
 
         {/* Flashcard */}
         {currentWord && (
-          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-3xl mx-auto mb-8" data-testid="flashcard-section">
-            {/* Progress */}
-            <div className="text-center mb-6">
-              <span className="text-sm text-gray-600">
-                Card {currentCardIndex + 1} of {filteredVocabulary.length} • {currentWord.lesson} •
-                Mode: {studyMode === 'random' ? 'Random 隨機' : 'Sequential 順序'}
-              </span>
-              <div className="w-full bg-gray-200 rounded-full h-3 mt-3">
+          <section
+            className="bg-white rounded-2xl shadow-2xl px-4 py-6 sm:px-8 sm:py-8 max-w-4xl mx-auto mb-8"
+            data-testid="flashcard-section"
+          >
+            <div className="flex flex-col lg:flex-row gap-6">
+              <div className="flex-1 space-y-6">
+                {/* Progress */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <span className="text-sm text-gray-600 text-center sm:text-left">
+                    Card {currentCardIndex + 1} of {filteredVocabulary.length} • {currentWord.lesson} •
+                    Mode: {studyMode === 'random' ? 'Random 隨機' : 'Sequential 順序'}
+                  </span>
+                  <div className="w-full sm:w-64">
+                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-2 bg-gradient-to-r from-red-600 to-orange-500 rounded-full transition-all duration-500"
+                        style={{ width: `${((currentCardIndex + 1) / filteredVocabulary.length) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Content */}
                 <div
-                  className="bg-gradient-to-r from-red-600 to-orange-500 h-3 rounded-full transition-all duration-500"
-                  style={{ width: `${((currentCardIndex + 1) / filteredVocabulary.length) * 100}%` }}
-                ></div>
-              </div>
-            </div>
-
-            {/* Card Content */}
-            <div
-              className="text-center cursor-pointer min-h-[350px] flex flex-col justify-center border-2 border-dashed border-gray-200 rounded-lg hover:border-red-300 transition-colors"
-              data-testid="flashcard-card"
-              role="button"
-              tabIndex={0}
-              aria-label="Flashcard"
-              onClick={() => setShowAnswer(!showAnswer)}
-            >
-              {!showAnswer ? (
-                <div className="space-y-8">
-                  <div className="text-8xl font-bold text-red-800 mb-6 tracking-wide" data-testid="flashcard-character">
-                    {currentWord.characters}
-                  </div>
-                  <p className="text-gray-500 text-lg mt-12 animate-pulse">
-                    🎯 Click to reveal pinyin & meaning • 點擊顯示拼音和含義
-                  </p>
+                  className="relative text-center cursor-pointer min-h-[260px] sm:min-h-[340px] flex flex-col justify-center border-2 border-dashed border-red-100 rounded-2xl bg-gradient-to-b from-white to-red-50 hover:border-red-300 transition-colors shadow-inner"
+                  data-testid="flashcard-card"
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Flashcard"
+                  onClick={() => setShowAnswer(!showAnswer)}
+                >
+                  {!showAnswer ? (
+                    <div className="space-y-6 sm:space-y-8">
+                      <div className="text-7xl sm:text-8xl font-bold text-red-800 tracking-wide" data-testid="flashcard-character">
+                        {currentWord.characters}
+                      </div>
+                      <p className="text-gray-500 text-base sm:text-lg flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 animate-pulse">
+                        <span role="img" aria-hidden="true">🎯</span>
+                        <span>Click to reveal pinyin & meaning • 點擊顯示拼音和含義</span>
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-5 sm:space-y-6">
+                      <div className="text-7xl sm:text-8xl font-bold text-red-800 tracking-wide" data-testid="flashcard-character">
+                        {currentWord.characters}
+                      </div>
+                      <div className="text-2xl sm:text-3xl text-red-600 font-medium tracking-wider">
+                        {currentWord.pinyin}
+                      </div>
+                      <div className="text-3xl sm:text-4xl text-gray-800 font-semibold px-4 py-2 bg-yellow-100 rounded-lg inline-block">
+                        {currentWord.english}
+                      </div>
+                      <p className="text-gray-500 text-base sm:text-lg">
+                        ✅ Click to hide answer • 點擊隱藏答案
+                      </p>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="space-y-8">
-                  <div className="text-8xl font-bold text-red-800 mb-6 tracking-wide" data-testid="flashcard-character">
-                    {currentWord.characters}
+
+                {/* Answer Buttons (when answer is shown) */}
+                {showAnswer && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      onClick={() => markAnswer(false)}
+                      className="bg-red-500 text-white px-5 py-3 rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
+                    >
+                      <X size={20} />
+                      Need Practice
+                    </button>
+                    <button
+                      onClick={() => markAnswer(true)}
+                      className="bg-green-500 text-white px-5 py-3 rounded-xl hover:bg-green-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
+                    >
+                      <Check size={20} />
+                      Got It!
+                    </button>
                   </div>
-                  <div className="text-3xl text-red-600 font-medium tracking-wider">
-                    {currentWord.pinyin}
+                )}
+              </div>
+
+              <div className="flex flex-col justify-between lg:w-64 space-y-4">
+                <div className="bg-red-50 border border-red-100 rounded-2xl p-4 space-y-3 shadow-inner">
+                  <h4 className="text-sm font-semibold text-red-700 text-center">Quick Actions</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={prevCard}
+                      className="flex flex-col items-center justify-center bg-white text-red-600 border border-red-200 rounded-xl py-3 px-2 hover:bg-red-100 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                      disabled={filteredVocabulary.length <= 1}
+                      aria-label="Previous card"
+                    >
+                      <ChevronLeft size={20} />
+                      <span className="mt-1 text-xs font-medium">Prev</span>
+                    </button>
+                    <button
+                      onClick={nextCard}
+                      className="flex flex-col items-center justify-center bg-white text-red-600 border border-red-200 rounded-xl py-3 px-2 hover:bg-red-100 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                      disabled={filteredVocabulary.length <= 1}
+                      aria-label="Next card"
+                    >
+                      <ChevronRight size={20} />
+                      <span className="mt-1 text-xs font-medium">Next</span>
+                    </button>
+                    <button
+                      onClick={shuffleCards}
+                      className="flex flex-col items-center justify-center bg-white text-purple-600 border border-purple-200 rounded-xl py-3 px-2 hover:bg-purple-50 transition-colors shadow-sm"
+                      aria-label="Shuffle cards"
+                    >
+                      <Shuffle size={18} />
+                      <span className="mt-1 text-xs font-medium">Shuffle</span>
+                    </button>
+                    <button
+                      onClick={resetCards}
+                      className="flex flex-col items-center justify-center bg-white text-gray-700 border border-gray-200 rounded-xl py-3 px-2 hover:bg-gray-100 transition-colors shadow-sm"
+                      aria-label="Reset progress"
+                    >
+                      <RotateCcw size={18} />
+                      <span className="mt-1 text-xs font-medium">Reset</span>
+                    </button>
                   </div>
-                  <div className="text-4xl text-gray-800 font-semibold px-4 py-2 bg-yellow-100 rounded-lg inline-block">
-                    {currentWord.english}
-                  </div>
-                  <p className="text-gray-500 text-lg mt-12">
-                    ✅ Click to hide answer • 點擊隱藏答案
-                  </p>
                 </div>
-              )}
-            </div>
 
-            {/* Answer Buttons (when answer is shown) */}
-            {showAnswer && (
-              <div className="flex justify-center gap-4 mt-8">
-                <button
-                  onClick={() => markAnswer(false)}
-                  className="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2 shadow-lg"
-                >
-                  <X size={20} />
-                  Need Practice
-                </button>
-                <button
-                  onClick={() => markAnswer(true)}
-                  className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2 shadow-lg"
-                >
-                  <Check size={20} />
-                  Got It!
-                </button>
+                <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 space-y-3 shadow-inner">
+                  <h4 className="text-sm font-semibold text-orange-700 text-center">Card Details</h4>
+                  <div className="text-sm text-gray-700 space-y-2">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Lesson</span>
+                      <span className="text-red-600">{formatLessonLabel(currentWord.lesson)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Book</span>
+                      <span>{currentWord.book}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Level</span>
+                      <span>{currentWord.level}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Characters</span>
+                      <span>{currentWord.characters.length}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            )}
-
-            {/* Navigation Controls */}
-            <div className="flex justify-between items-center mt-8">
-              <button
-                onClick={prevCard}
-                className="bg-red-600 text-white p-4 rounded-full hover:bg-red-700 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105"
-                disabled={filteredVocabulary.length <= 1}
-                aria-label="Previous card"
-              >
-                <ChevronLeft size={24} />
-              </button>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={shuffleCards}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 shadow-lg"
-                  aria-label="Shuffle cards"
-                >
-                  <Shuffle size={18} />
-                  Shuffle
-                </button>
-                <button
-                  onClick={resetCards}
-                  className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2 shadow-lg"
-                  aria-label="Reset progress"
-                >
-                  <RotateCcw size={18} />
-                  Reset
-                </button>
-              </div>
-
-              <button
-                onClick={nextCard}
-                className="bg-red-600 text-white p-4 rounded-full hover:bg-red-700 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105"
-                disabled={filteredVocabulary.length <= 1}
-                aria-label="Next card"
-              >
-                <ChevronRight size={24} />
-              </button>
             </div>
-          </div>
+          </section>
         )}
 
         {/* Vocabulary Overview Grid */}
