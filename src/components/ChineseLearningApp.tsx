@@ -9,8 +9,6 @@ const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'bas
 const getUniqueSortedValues = (values: string[]) =>
   Array.from(new Set(values)).sort((a, b) => collator.compare(a, b));
 
-const normalizeLesson = (lesson: string) => lesson.trim().toLowerCase();
-
 const formatLessonLabel = (lesson: string) => {
   const normalized = lesson.trim();
 

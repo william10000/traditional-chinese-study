@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Volume2, BookOpen, FileText, Home, Printer } from 'lucide-react';
+import { Volume2, Home, Printer } from 'lucide-react';
 
 const BopomofoApp = () => {
   const [currentScreen, setCurrentScreen] = useState('home');
