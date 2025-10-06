@@ -84,6 +84,11 @@ The app includes comprehensive vocabulary from 12 lessons covering:
 
 The vocabulary grid at the bottom shows all characters in the selected lesson. Click any character to jump directly to that flashcard.
 
+## Adding new words
+
+1. Add unprocessed files to the unprocessed directory
+2. Use coding agent to process the files and them to the app. See processing_instructions.md. gpt-5-codex has 100% accuracy in adding all relevant vocabulary words, but was often off by one in articulating how many words it added in each image
+
 ## 🏗️ Project Structure
 
 ```
