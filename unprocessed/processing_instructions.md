@@ -18,3 +18,8 @@ Processed level_k2_book_a_02.jpg: added 22 vocabulary rows to `src/components/Ch
 Processed level_k2_book_a_03.jpg: added 23 vocabulary rows to `src/components/ChineseLearningApp.tsx`.
 Processed level_k2_book_a_04.jpg: added 21 vocabulary rows to `src/components/ChineseLearningApp.tsx`.
 Processed level_k2_book_a_05.jpg: added 6 vocabulary rows to `src/components/ChineseLearningApp.tsx`.
+Processed level_02_book_a_01.jpg: added 23 vocabulary rows to `src/components/ChineseLearningApp.tsx`.
+Processed level_02_book_a_02.jpg: added 25 vocabulary rows to `src/components/ChineseLearningApp.tsx`.
+Processed level_02_book_a_03.jpg: added 26 vocabulary rows to `src/components/ChineseLearningApp.tsx`.
+Processed level_02_book_a_04.jpg: added 19 vocabulary rows to `src/components/ChineseLearningApp.tsx`.
+
