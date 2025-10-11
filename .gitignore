@@ -40,3 +40,4 @@ coverage/
 .next/
 .nuxt/
 .vuepress/dist
+.playwright-mcp

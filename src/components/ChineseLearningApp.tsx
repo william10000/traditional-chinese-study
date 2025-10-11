@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, RotateCcw, Printer, Shuffle, Check, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RotateCcw, Printer, Shuffle, Check, X, Volume2, Eye, EyeOff } from 'lucide-react';
 import { VocabularyWord, StudyStats } from '../types';
 
 const ALL_OPTION = 'all';
@@ -704,12 +704,35 @@ export const VOCABULARY: VocabularyWord[] = [
 const ChineseLearningApp = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [kidMode, setKidMode] = useState<boolean>(false);
   const [selectedLevel, setSelectedLevel] = useState<string>(ALL_OPTION);
   const [selectedBook, setSelectedBook] = useState<string>(ALL_OPTION);
   const [selectedLesson, setSelectedLesson] = useState<string>(ALL_OPTION);
   const [studyMode, setStudyMode] = useState<'sequential' | 'random'>('sequential');
   const [cardOrder, setCardOrder] = useState<number[]>([]);
   const [studyStats, setStudyStats] = useState<StudyStats>({ correct: 0, total: 0 });
+
+  // Persist Kid Mode; default ON for first-time visitors
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('kidMode');
+      if (saved === null) {
+        setKidMode(true);
+      } else {
+        setKidMode(saved === 'true');
+      }
+    } catch {
+      setKidMode(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('kidMode', String(kidMode));
+    } catch {
+      // ignore
+    }
+  }, [kidMode]);
 
   const levelOptions = useMemo(
     () => getUniqueSortedValues(VOCABULARY.map(word => word.level)),
@@ -827,6 +850,10 @@ const lessonOptions = useMemo(() => {
   };
 
   const resetCards = () => {
+    const confirmed = window.confirm('Reset your progress? 確認重設進度？');
+    if (!confirmed) {
+      return;
+    }
     setCurrentCardIndex(0);
     setShowAnswer(false);
     setStudyStats({ correct: 0, total: 0 });
@@ -1063,6 +1090,24 @@ const lessonOptions = useMemo(() => {
     }
   };
 
+  const playAudio = () => {
+    if (!currentWord) return;
+    try {
+      const utterance = new SpeechSynthesisUtterance(currentWord.characters);
+      utterance.lang = 'zh-TW';
+      utterance.rate = 0.75; // 15% slower for elementary learners
+      // Prefer zh-TW voice if available
+      const voices = window.speechSynthesis?.getVoices?.() || [];
+      const zhVoice = voices.find(v => v.lang?.toLowerCase?.().startsWith('zh'));
+      if (zhVoice) {
+        utterance.voice = zhVoice;
+      }
+      window.speechSynthesis?.speak(utterance);
+    } catch {
+      // no-op if speech synthesis not available
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-yellow-50 to-orange-50 p-4">
       <div className="max-w-6xl mx-auto">
@@ -1072,9 +1117,25 @@ const lessonOptions = useMemo(() => {
             傳統中文學習 Traditional Chinese Learning
           </h1>
           <p className="text-red-600 text-lg">索引：生詞／短語 - Index: Vocabulary Words / Phrases</p>
+
+          {/* Kid Mode toggle */}
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              data-testid="kid-mode-toggle"
+              aria-pressed={kidMode}
+              onClick={() => setKidMode(prev => !prev)}
+              className={`px-5 py-2 rounded-full text-sm font-semibold shadow transition-colors ${
+                kidMode ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+              }`}
+            >
+              Kid Mode {kidMode ? 'ON' : 'OFF'}
+            </button>
+          </div>
         </div>
 
         {/* Controls Panel */}
+        {!kidMode && (
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8" data-testid="filter-panel">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             {/* Level Filter */}
@@ -1193,9 +1254,10 @@ const lessonOptions = useMemo(() => {
             </button>
           </div>
         </div>
+        )}
 
         {/* Study Stats */}
-        {studyStats.total > 0 && (
+        {!kidMode && studyStats.total > 0 && (
           <div className="bg-white rounded-lg p-4 mb-8 shadow-lg text-center max-w-4xl mx-auto">
             <div className="text-lg font-semibold text-gray-700">
               Study Progress: {studyStats.correct}/{studyStats.total} correct
@@ -1266,8 +1328,44 @@ const lessonOptions = useMemo(() => {
                   )}
                 </div>
 
+                {/* Kid Mode Primary Controls */}
+                {kidMode && (
+                  <div
+                    className="grid grid-cols-1 sm:grid-cols-3 gap-3"
+                    data-testid="kid-mode-primary-controls"
+                  >
+                    <button
+                      onClick={playAudio}
+                      className="bg-blue-600 text-white px-5 py-3 rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
+                      aria-label="Play audio"
+                      data-testid="play-audio-button"
+                    >
+                      <Volume2 size={20} />
+                      Play Audio
+                    </button>
+                    <button
+                      onClick={() => setShowAnswer(prev => !prev)}
+                      className="bg-yellow-500 text-white px-5 py-3 rounded-xl hover:bg-yellow-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
+                      aria-label="Toggle answer"
+                      data-testid="toggle-answer-button"
+                    >
+                      {showAnswer ? <EyeOff size={20} /> : <Eye size={20} />}
+                      {showAnswer ? 'Hide Answer' : 'Reveal Answer'}
+                    </button>
+                    <button
+                      onClick={nextCard}
+                      className="bg-green-600 text-white px-5 py-3 rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
+                      aria-label="Next"
+                      data-testid="next-button"
+                    >
+                      <ChevronRight size={20} />
+                      Next
+                    </button>
+                  </div>
+                )}
+
                 {/* Answer Buttons (when answer is shown) */}
-                {showAnswer && (
+                {showAnswer && !kidMode && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       onClick={() => markAnswer(false)}
@@ -1287,6 +1385,7 @@ const lessonOptions = useMemo(() => {
                 )}
               </div>
 
+              {!kidMode && (
               <div className="flex flex-col justify-between lg:w-64 space-y-4">
                 <div className="bg-red-50 border border-red-100 rounded-2xl p-4 space-y-3 shadow-inner">
                   <h4 className="text-sm font-semibold text-red-700 text-center">Quick Actions</h4>
@@ -1321,6 +1420,7 @@ const lessonOptions = useMemo(() => {
                       onClick={resetCards}
                       className="flex flex-col items-center justify-center bg-white text-gray-700 border border-gray-200 rounded-xl py-3 px-2 hover:bg-gray-100 transition-colors shadow-sm"
                       aria-label="Reset progress"
+                      data-testid="quick-actions-reset"
                     >
                       <RotateCcw size={18} />
                       <span className="mt-1 text-xs font-medium">Reset</span>
@@ -1350,12 +1450,14 @@ const lessonOptions = useMemo(() => {
                   </div>
                 </div>
               </div>
+              )}
             </div>
           </section>
         )}
 
         {/* Vocabulary Overview Grid */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        {!kidMode && (
+        <div className="bg-white rounded-xl shadow-lg p-6" data-testid="vocab-overview-section">
           <h3 className="text-2xl font-bold text-red-800 mb-6 text-center">
             詞彙總覽 Vocabulary Overview
             <span className="text-lg text-gray-600 ml-3">
@@ -1392,6 +1494,7 @@ const lessonOptions = useMemo(() => {
             ))}
           </div>
         </div>
+        )}
 
         {!hasCards && (
           <div className="mt-8 bg-yellow-100 text-yellow-800 text-center p-4 rounded-lg">
@@ -1400,6 +1503,7 @@ const lessonOptions = useMemo(() => {
         )}
 
         {/* Instructions */}
+        {!kidMode && (
         <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
           <h3 className="text-xl font-bold text-red-800 mb-4 text-center">
             使用說明 How to Use This App
@@ -1427,6 +1531,7 @@ const lessonOptions = useMemo(() => {
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );
