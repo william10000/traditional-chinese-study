@@ -530,6 +530,175 @@ export const VOCABULARY: VocabularyWord[] = [
   { pinyin: 'yuè', characters: '月', english: 'month', lesson: 'L6', book: 'A', level: 'K2' },
   { pinyin: 'zǎo fàn', characters: '早飯', english: 'breakfast', lesson: 'L4', book: 'A', level: 'K2' },
   { pinyin: 'zuó tiān', characters: '昨天', english: 'yesterday', lesson: 'L6', book: 'A', level: 'K2' },
+  // Level 1 Book B - Page 104 (level_01_book_b_01.jpg)
+  { pinyin: 'ā yí', characters: '阿姨', english: 'aunt', lesson: 'L12', book: 'B', level: '1' },
+  { pinyin: 'bā', characters: '八', english: 'eight', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'ba', characters: '吧', english: 'sentence-final particle for suggestions', lesson: 'L7', book: 'B', level: '1' },
+  { pinyin: 'bà ba', characters: '爸爸', english: 'dad', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'bān', characters: '班', english: 'class', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'bí zi', characters: '鼻子', english: 'nose', lesson: 'L7', book: 'B', level: '1' },
+  { pinyin: 'cháng cháng', characters: '常常', english: 'often', lesson: 'L8', book: 'B', level: '1' },
+  { pinyin: 'chàng gē', characters: '唱歌', english: 'to sing a song', lesson: 'L8', book: 'B', level: '1' },
+  { pinyin: 'chén xīn měi', characters: '陳心美', english: 'May Chen', lesson: 'L1', book: 'B', level: '1' },
+  { pinyin: 'chī', characters: '吃', english: 'to eat', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'dà', characters: '大', english: 'big, large', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'dǎ', characters: '打', english: 'to call, to beat, to strike', lesson: 'L12', book: 'B', level: '1' },
+  { pinyin: 'dǎ qiú', characters: '打球', english: 'to play ball', lesson: 'L8', book: 'B', level: '1' },
+  { pinyin: 'dàn gāo', characters: '蛋糕', english: 'cake', lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'dào', characters: '到', english: 'to (a place), until (a time)', lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'de', characters: '的', english: "'s (possessive particle)", lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'dì di', characters: '弟弟', english: 'younger brother', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'dōng tiān', characters: '冬天', english: 'winter', lesson: 'L5', book: 'B', level: '1' },
+  { pinyin: 'dōu', characters: '都', english: 'all, both, neither, none', lesson: 'L9', book: 'B', level: '1' },
+  { pinyin: 'duì', characters: '對', english: 'right?, correct?', lesson: 'L10', book: 'B', level: '1' },
+  { pinyin: 'èr shí bā', characters: '二十八', english: 'twenty-eight', lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'fáng jiān', characters: '房間', english: 'room', lesson: 'L9', book: 'B', level: '1' },
+  // Level 1 Book B - Page 105 (level_01_book_b_02.jpg)
+  { pinyin: 'gè', characters: '個', english: 'a measure word', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'gē ge', characters: '哥哥', english: 'older brother', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'gū gu', characters: '姑姑', english: "aunt, father's sister", lesson: 'L10', book: 'B', level: '1' },
+  { pinyin: 'guǒ zhī', characters: '果汁', english: 'juice', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'hái yào', characters: '還要', english: 'also want', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'hái yǒu', characters: '還有', english: 'also have, in addition', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'hǎo', characters: '好', english: 'good, fine', lesson: 'L5', book: 'B', level: '1' },
+  { pinyin: 'hào', characters: '號', english: 'day of the month', lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'hàn', characters: '和', english: 'with, and', lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'hē', characters: '喝', english: 'to drink', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'hěn', characters: '很', english: 'very', lesson: 'L5', book: 'B', level: '1' },
+  { pinyin: 'hòu miàn', characters: '後面', english: 'behind', lesson: 'L9', book: 'B', level: '1' },
+  { pinyin: 'huà tú', characters: '畫圖', english: 'to draw a picture', lesson: 'L7', book: 'B', level: '1' },
+  { pinyin: 'huì', characters: '會', english: 'can, to be able to', lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'jǐ', characters: '幾', english: 'how many', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'jiā', characters: '家', english: 'family, home', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'jiào', characters: '叫', english: 'to be called (by the name of), to call', lesson: 'L1', book: 'B', level: '1' },
+  { pinyin: 'jiě jie', characters: '姊姊', english: 'old sister', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'jìn', characters: '近', english: 'close, near', lesson: 'L1', book: 'B', level: '1' },
+  { pinyin: 'jīn tiān', characters: '今天', english: 'today', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'jiǔ', characters: '九', english: 'nine', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'jué de', characters: '覺得', english: 'to think, to feel', lesson: 'L5', book: 'B', level: '1' },
+  { pinyin: 'kāi chē', characters: '開車', english: 'to drive', lesson: 'L11', book: 'B', level: '1' },
+  { pinyin: 'kàn', characters: '看', english: 'to look', lesson: 'L7', book: 'B', level: '1' },
+  { pinyin: 'kàn diàn shì', characters: '看電視', english: 'to watch television', lesson: 'L8', book: 'B', level: '1' },
+  { pinyin: 'kě shì', characters: '可是', english: 'but, however', lesson: 'L5', book: 'B', level: '1' },
+  { pinyin: 'kuài', characters: '快', english: 'nearly', lesson: 'L6', book: 'B', level: '1' },
+  // Level 1 Book B - Page 106 (level_01_book_b_03.jpg)
+  { pinyin: 'lái', characters: '來', english: 'to come', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'lǎo shī', characters: '老師', english: 'teacher', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'lěng', characters: '冷', english: 'cold', lesson: 'L5', book: 'B', level: '1' },
+  { pinyin: 'lǐ dà wén', characters: '李大文', english: 'Devin Li', lesson: 'L1', book: 'B', level: '1' },
+  { pinyin: 'lǐ miàn', characters: '裡面', english: 'inside', lesson: 'L9', book: 'B', level: '1' },
+  { pinyin: 'lǐ wù', characters: '禮物', english: 'gift', lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'liǎng', characters: '兩', english: 'two', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'lín dōng míng', characters: '林東明', english: 'Tony Lin', lesson: 'L1', book: 'B', level: '1' },
+  { pinyin: 'liù', characters: '六', english: 'six', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'ma', characters: '嗎', english: 'question particle for yes-no questions', lesson: 'L7', book: 'B', level: '1' },
+  { pinyin: 'mā ma', characters: '媽媽', english: 'mom', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'mān huà', characters: '漫畫', english: 'comic', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'mèi mei', characters: '妹妹', english: 'younger sister', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'méi yǒu', characters: '沒有', english: "to not have, there isn't / aren't, no", lesson: 'L9', book: 'B', level: '1' },
+  { pinyin: 'miàn bāo', characters: '麵包', english: 'bread', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'míng zi', characters: '名字', english: 'name', lesson: 'L1', book: 'B', level: '1' },
+  { pinyin: 'nǎ lǐ', characters: '哪裡', english: 'where', lesson: 'L9', book: 'B', level: '1' },
+  { pinyin: 'nà shí hòu', characters: '那時候', english: 'at that time', lesson: 'L10', book: 'B', level: '1' },
+  { pinyin: 'nǎi nai', characters: '奶奶', english: 'grandma, grandmother', lesson: 'L10', book: 'B', level: '1' },
+  { pinyin: 'nán shēng', characters: '男生', english: 'boy', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'ne', characters: '呢', english: 'question particle', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'nǐ hǎo', characters: '你好', english: 'hello', lesson: 'L1', book: 'B', level: '1' },
+  { pinyin: 'nǐ men', characters: '你們', english: 'you (plural)', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'nín', characters: '您', english: 'you (polite)', lesson: 'L12', book: 'B', level: '1' },
+  { pinyin: 'niú nǎi', characters: '牛奶', english: 'milk', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'nǚ shēng', characters: '女生', english: 'girl', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'pǎo bù', characters: '跑步', english: 'to run, to jog', lesson: 'L8', book: 'B', level: '1' },
+  { pinyin: 'péng yǒu', characters: '朋友', english: 'friend(s)', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'píng cháng', characters: '平常', english: 'usually', lesson: 'L11', book: 'B', level: '1' },
+  { pinyin: 'píng guǒ', characters: '蘋果', english: 'apple', lesson: 'L4', book: 'B', level: '1' },
+  // Level 1 Book B - Page 107 (level_01_book_b_04.jpg)
+  { pinyin: 'qī', characters: '七', english: 'seven', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'qí', characters: '騎', english: 'to ride', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'qǐng wèn', characters: '請問', english: 'Excuse me, May I ask you a question?', lesson: 'L12', book: 'B', level: '1' },
+  { pinyin: 'qù', characters: '去', english: 'to go, to go to (a place)', lesson: 'L9', book: 'B', level: '1' },
+  { pinyin: 'rè', characters: '熱', english: 'hot', lesson: 'L5', book: 'B', level: '1' },
+  { pinyin: 'rén', characters: '人', english: 'people, person', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'sān', characters: '三', english: 'three', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'sān shí', characters: '三十', english: 'thirty', lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'shā fā', characters: '沙發', english: 'couch, sofa', lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'shàng miàn', characters: '上面', english: 'on', lesson: 'L9', book: 'B', level: '1' },
+  { pinyin: 'shéi', characters: '誰', english: 'who (also plural)', lesson: 'L10', book: 'B', level: '1' },
+  { pinyin: 'shén me', characters: '什麼', english: 'what', lesson: 'L1', book: 'B', level: '1' },
+  { pinyin: 'shēn tǐ', characters: '身體', english: 'body', lesson: 'L7', book: 'B', level: '1' },
+  { pinyin: 'shēng rì', characters: '生日', english: 'birthday', lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'shí', characters: '十', english: 'ten', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'shì', characters: '是', english: 'to be (am, are, is)', lesson: 'L1', book: 'B', level: '1' },
+  { pinyin: 'shí yī', characters: '十一', english: 'eleven', lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'shǒu', characters: '手', english: 'hand(s)', lesson: 'L7', book: 'B', level: '1' },
+  { pinyin: 'shǒu jī', characters: '手機', english: 'cell phone, mobile phone', lesson: 'L12', book: 'B', level: '1' },
+  { pinyin: 'shū', characters: '書', english: 'book', lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'shū shu', characters: '叔叔', english: "uncle, father's younger brother", lesson: 'L10', book: 'B', level: '1' },
+  { pinyin: 'shuǐ guǒ', characters: '水果', english: 'fruit', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'sì', characters: '四', english: 'four', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'sòng', characters: '送', english: 'to send, to deliver', lesson: 'L11', book: 'B', level: '1' },
+  { pinyin: 'suì', characters: '歲', english: 'years old (classifier of age in years)', lesson: 'L10', book: 'B', level: '1' },
+  { pinyin: 'tā', characters: '他', english: 'he, him', lesson: 'L1', book: 'B', level: '1' },
+  { pinyin: 'tā', characters: '她', english: 'she, her', lesson: 'L1', book: 'B', level: '1' },
+  { pinyin: 'tā men', characters: '他們', english: 'they', lesson: 'L5', book: 'B', level: '1' },
+  { pinyin: 'tài ... le', characters: '太⋯⋯了', english: 'too...', lesson: 'L5', book: 'B', level: '1' },
+  // Level 1 Book B - Page 108 (level_01_book_b_05.jpg)
+  { pinyin: 'tài tai', characters: '太太', english: 'Mrs., wife, woman', lesson: 'L12', book: 'B', level: '1' },
+  { pinyin: 'tiào wǔ', characters: '跳舞', english: 'to dance', lesson: 'L8', book: 'B', level: '1' },
+  { pinyin: 'tīng yīn yuè', characters: '聽音樂', english: 'to listen to music', lesson: 'L8', book: 'B', level: '1' },
+  { pinyin: 'tóng xué', characters: '同學', english: 'classmate', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'tóu', characters: '頭', english: 'head', lesson: 'L7', book: 'B', level: '1' },
+  { pinyin: 'wǎn fàn', characters: '晚飯', english: 'dinner', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'wán jù', characters: '玩具', english: 'toy', lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'wáng', characters: '王', english: 'Wang (a surname)', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'wéi', characters: '喂', english: 'hello (when answering the phone)', lesson: 'L12', book: 'B', level: '1' },
+  { pinyin: 'wǒ', characters: '我', english: 'I, me', lesson: 'L1', book: 'B', level: '1' },
+  { pinyin: 'wǒ men', characters: '我們', english: 'we, us', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'wǔ', characters: '五', english: 'five', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'wǔ fàn', characters: '午飯', english: 'lunch', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'xià kè', characters: '下課', english: 'to finish class, to get out of class', lesson: 'L8', book: 'B', level: '1' },
+  { pinyin: 'xià miàn', characters: '下面', english: 'under, below', lesson: 'L9', book: 'B', level: '1' },
+  { pinyin: 'xià tiān', characters: '夏天', english: 'summer', lesson: 'L5', book: 'B', level: '1' },
+  { pinyin: 'xiǎng', characters: '想', english: 'to want, to think', lesson: 'L11', book: 'B', level: '1' },
+  { pinyin: 'xiāng jiāo', characters: '香蕉', english: 'banana', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'xiǎo', characters: '小', english: 'small', lesson: 'L7', book: 'B', level: '1' },
+  { pinyin: 'xiào chē', characters: '校車', english: 'school bus', lesson: 'L11', book: 'B', level: '1' },
+  { pinyin: 'xiǎo hái', characters: '小孩', english: 'child', lesson: 'L10', book: 'B', level: '1' },
+  { pinyin: 'xiè xie', characters: '謝謝', english: 'thank you', lesson: 'L12', book: 'B', level: '1' },
+  { pinyin: 'xǐ huān', characters: '喜歡', english: 'to like', lesson: 'L5', book: 'B', level: '1' },
+  { pinyin: 'xìng', characters: '姓', english: 'family name, surname', lesson: 'L1', book: 'B', level: '1' },
+  { pinyin: 'xuě rén', characters: '雪人', english: 'snowman', lesson: 'L7', book: 'B', level: '1' },
+  { pinyin: 'xué xiào', characters: '學校', english: 'school', lesson: 'L11', book: 'B', level: '1' },
+  { pinyin: 'yǎn jīng', characters: '眼睛', english: 'eye(s)', lesson: 'L7', book: 'B', level: '1' },
+  { pinyin: 'yě', characters: '也', english: 'also', lesson: 'L3', book: 'B', level: '1' },
+  { pinyin: 'yé ye', characters: '爺爺', english: 'grandpa, grandfather', lesson: 'L10', book: 'B', level: '1' },
+  { pinyin: 'yǐ hòu', characters: '以後', english: 'after, afterwards', lesson: 'L8', book: 'B', level: '1' },
+  // Level 1 Book B - Page 109 (level_01_book_b_06.jpg)
+  { pinyin: 'yì qǐ', characters: '一起', english: 'together', lesson: 'L7', book: 'B', level: '1' },
+  { pinyin: 'yí xià', characters: '一下', english: '(used after a verb) a bit, a little while', lesson: 'L9', book: 'B', level: '1' },
+  { pinyin: 'yǒu', characters: '有', english: 'to have, there is / are, is / are there', lesson: 'L2', book: 'B', level: '1' },
+  { pinyin: 'yòu biān', characters: '右邊', english: 'to the right, right side', lesson: 'L10', book: 'B', level: '1' },
+  { pinyin: 'yǒu yì diǎn', characters: '有一點', english: 'a little', lesson: 'L5', book: 'B', level: '1' },
+  { pinyin: 'yuǎn', characters: '遠', english: 'far, distant', lesson: 'L11', book: 'B', level: '1' },
+  { pinyin: 'yuè', characters: '月', english: 'month', lesson: 'L6', book: 'B', level: '1' },
+  { pinyin: 'yùn dòng', characters: '運動', english: 'sport, to exercise', lesson: 'L8', book: 'B', level: '1' },
+  { pinyin: 'zài', characters: '在', english: 'to be in', lesson: 'L12', book: 'B', level: '1' },
+  { pinyin: 'zài', characters: '在', english: 'located at', lesson: 'L9', book: 'B', level: '1' },
+  { pinyin: 'zài jiàn', characters: '再見', english: 'Goodbye, See you again', lesson: 'L12', book: 'B', level: '1' },
+  { pinyin: 'zǎo fàn', characters: '早飯', english: 'breakfast', lesson: 'L4', book: 'B', level: '1' },
+  { pinyin: 'zěn me', characters: '怎麼', english: 'how? why?', lesson: 'L8', book: 'B', level: '1' },
+  { pinyin: 'zhāng', characters: '張', english: 'sheet, piece (flat objects like paper)', lesson: 'L10', book: 'B', level: '1' },
+  { pinyin: 'zhǎo', characters: '找', english: 'to look for, to find, to seek', lesson: 'L9', book: 'B', level: '1' },
+  { pinyin: 'zhào piàn', characters: '照片', english: 'photograph', lesson: 'L10', book: 'B', level: '1' },
+  { pinyin: 'zhè', characters: '這', english: 'this', lesson: 'L10', book: 'B', level: '1' },
+  { pinyin: 'zhōng jiān', characters: '中間', english: 'middle, between', lesson: 'L10', book: 'B', level: '1' },
+  { pinyin: 'zhuō zi', characters: '桌子', english: 'table', lesson: 'L9', book: 'B', level: '1' },
+  { pinyin: 'zì xíng chē', characters: '自行車', english: 'bicycle', lesson: 'L11', book: 'B', level: '1' },
+  { pinyin: 'zǒu lù', characters: '走路', english: 'to walk', lesson: 'L11', book: 'B', level: '1' },
+  { pinyin: 'zuǐ ba', characters: '嘴巴', english: 'mouth', lesson: 'L7', book: 'B', level: '1' },
+  { pinyin: 'zuò', characters: '坐', english: 'to sit', lesson: 'L11', book: 'B', level: '1' },
+  { pinyin: 'zuò', characters: '做', english: 'to do', lesson: 'L8', book: 'B', level: '1' },
+  { pinyin: 'zuǒ biān', characters: '左邊', english: 'to the left, left side', lesson: 'L10', book: 'B', level: '1' },
 ];
 
 const ChineseLearningApp = () => {
@@ -905,18 +1074,6 @@ const lessonOptions = useMemo(() => {
           <p className="text-red-600 text-lg">索引：生詞／短語 - Index: Vocabulary Words / Phrases</p>
         </div>
 
-        {/* Study Stats */}
-        {studyStats.total > 0 && (
-          <div className="bg-white rounded-lg p-4 mb-6 shadow-lg text-center">
-            <div className="text-lg font-semibold text-gray-700">
-              Study Progress: {studyStats.correct}/{studyStats.total} correct
-              <span className="text-green-600 ml-2">
-                ({studyStats.total > 0 ? Math.round((studyStats.correct / studyStats.total) * 100) : 0}%)
-              </span>
-            </div>
-          </div>
-        )}
-
         {/* Controls Panel */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8" data-testid="filter-panel">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
@@ -1037,6 +1194,18 @@ const lessonOptions = useMemo(() => {
           </div>
         </div>
 
+        {/* Study Stats */}
+        {studyStats.total > 0 && (
+          <div className="bg-white rounded-lg p-4 mb-8 shadow-lg text-center max-w-4xl mx-auto">
+            <div className="text-lg font-semibold text-gray-700">
+              Study Progress: {studyStats.correct}/{studyStats.total} correct
+              <span className="text-green-600 ml-2">
+                ({studyStats.total > 0 ? Math.round((studyStats.correct / studyStats.total) * 100) : 0}%)
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Flashcard */}
         {currentWord && (
           <section
@@ -1076,7 +1245,6 @@ const lessonOptions = useMemo(() => {
                         {currentWord.characters}
                       </div>
                       <p className="text-gray-500 text-base sm:text-lg flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 animate-pulse">
-                        <span role="img" aria-hidden="true">🎯</span>
                         <span>Click to reveal pinyin & meaning • 點擊顯示拼音和含義</span>
                       </p>
                     </div>
@@ -1092,7 +1260,7 @@ const lessonOptions = useMemo(() => {
                         {currentWord.english}
                       </div>
                       <p className="text-gray-500 text-base sm:text-lg">
-                        ✅ Click to hide answer • 點擊隱藏答案
+                        Click to hide answer • 點擊隱藏答案
                       </p>
                     </div>
                   )}

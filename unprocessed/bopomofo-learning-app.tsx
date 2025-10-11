@@ -1,11 +1,35 @@
-import React, { useState } from 'react';
-import { Volume2, Home, Printer } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Volume2, Home, Printer, Settings } from 'lucide-react';
 
 const BopomofoApp = () => {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [currentSymbolIndex, setCurrentSymbolIndex] = useState(0);
   const [currentFlashcard, setCurrentFlashcard] = useState(0);
   const [symbolFilter, setSymbolFilter] = useState('all');
+  const [availableVoices, setAvailableVoices] = useState([]);
+  const [selectedVoice, setSelectedVoice] = useState(null);
+
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const chineseVoices = voices.filter(voice =>
+        voice.lang.startsWith('zh') || voice.lang.includes('Chinese')
+      );
+      setAvailableVoices(chineseVoices);
+
+      // Set default voice (prefer Taiwan/Traditional Chinese)
+      if (chineseVoices.length > 0 && !selectedVoice) {
+        const preferredVoice = chineseVoices.find(v => v.lang === 'zh-TW') || chineseVoices[0];
+        setSelectedVoice(preferredVoice);
+      }
+    };
+
+    loadVoices();
+    // Chrome loads voices asynchronously
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
 
   // Starting sounds (Initials/Consonants)
   const startingSounds = [
@@ -89,6 +113,9 @@ const BopomofoApp = () => {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'zh-TW';
       utterance.rate = 0.8;
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
     }
@@ -97,10 +124,19 @@ const BopomofoApp = () => {
   const HomeScreen = () => (
     <div className="min-h-screen bg-gradient-to-br from-yellow-200 via-pink-200 to-purple-200 p-8">
       <div className="max-w-4xl mx-auto">
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => setCurrentScreen('settings')}
+            className="bg-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 text-lg hover:bg-gray-100"
+          >
+            <Settings size={24} /> Voice Settings
+          </button>
+        </div>
+        
         <h1 className="text-6xl font-bold text-center mb-4 text-purple-800">
-          ㄅㄆㄇ 學習樂園
+          ㄅㄆㄇ・好好玩
         </h1>
-        <p className="text-2xl text-center mb-12 text-purple-700">Bopomofo Learning Fun!</p>
+        <p className="text-2xl text-center mb-12 text-purple-700">BoPoMo Super Fun!</p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <button
@@ -155,7 +191,7 @@ const BopomofoApp = () => {
 
           <div className="bg-white rounded-3xl p-12 shadow-2xl text-center">
             <h2 className="text-4xl font-bold text-purple-700 mb-6">Learn Symbols</h2>
-            
+
             <div className="flex gap-3 justify-center mb-8">
               <button
                 onClick={() => handleFilterChange('all')}
@@ -310,14 +346,25 @@ const BopomofoApp = () => {
           </div>
 
           <div className="bg-white rounded-3xl p-12 shadow-2xl print:shadow-none print:rounded-none">
-            <h1 className="text-5xl font-bold text-center mb-2 text-blue-700">ㄅㄆㄇ Practice Worksheet</h1>
+            <h1 className="text-5xl font-bold text-center mb-2 text-blue-700">ㄅㄆㄇ・好好玩</h1>
+            <p className="text-2xl text-center mb-2 text-purple-600">Practice Worksheet</p>
             <p className="text-center text-xl mb-8 text-gray-600">Name: ___________________  Date: ___________</p>
 
             <div className="mb-12">
-              <h2 className="text-3xl font-bold mb-6 text-purple-700">Part 1: Trace the Symbols</h2>
+              <h2 className="text-3xl font-bold mb-6 text-blue-700">Part 1A: Starting Sounds (Trace)</h2>
+              <div className="grid grid-cols-6 gap-4 mb-8">
+                {startingSounds.slice(0, 12).map((sym, idx) => (
+                  <div key={idx} className="border-2 border-dashed border-blue-400 rounded-lg p-4 text-center bg-blue-50">
+                    <div className="text-5xl text-gray-300 mb-2">{sym.symbol}</div>
+                    <div className="text-4xl text-gray-400">____</div>
+                  </div>
+                ))}
+              </div>
+
+              <h2 className="text-3xl font-bold mb-6 text-pink-700">Part 1B: Ending Sounds (Trace)</h2>
               <div className="grid grid-cols-6 gap-4">
-                {bopomofoSymbols.slice(0, 12).map((sym, idx) => (
-                  <div key={idx} className="border-2 border-dashed border-gray-400 rounded-lg p-4 text-center">
+                {endingSounds.slice(0, 12).map((sym, idx) => (
+                  <div key={idx} className="border-2 border-dashed border-pink-400 rounded-lg p-4 text-center bg-pink-50">
                     <div className="text-5xl text-gray-300 mb-2">{sym.symbol}</div>
                     <div className="text-4xl text-gray-400">____</div>
                   </div>
@@ -347,18 +394,127 @@ const BopomofoApp = () => {
 
             <div>
               <h2 className="text-3xl font-bold mb-6 text-green-700">Part 3: Color and Learn</h2>
-              <div className="grid grid-cols-4 gap-4">
-                {bopomofoSymbols.slice(0, 8).map((sym, idx) => (
-                  <div key={idx} className="border-4 border-gray-300 rounded-lg p-6 text-center">
-                    <div className="text-6xl font-bold text-gray-800 mb-2">{sym.symbol}</div>
-                    <div className="text-lg text-gray-600">{sym.pinyin}</div>
-                  </div>
-                ))}
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold mb-4 text-blue-600">🚀 Starting Sounds</h3>
+                <div className="grid grid-cols-6 gap-4">
+                  {startingSounds.slice(0, 6).map((sym, idx) => (
+                    <div key={idx} className="border-4 border-blue-300 rounded-lg p-6 text-center bg-blue-50">
+                      <div className="text-6xl font-bold text-gray-800 mb-2">{sym.symbol}</div>
+                      <div className="text-lg text-gray-600">{sym.pinyin}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold mb-4 text-pink-600">🎯 Ending Sounds</h3>
+                <div className="grid grid-cols-6 gap-4">
+                  {endingSounds.slice(0, 6).map((sym, idx) => (
+                    <div key={idx} className="border-4 border-pink-300 rounded-lg p-6 text-center bg-pink-50">
+                      <div className="text-6xl font-bold text-gray-800 mb-2">{sym.symbol}</div>
+                      <div className="text-lg text-gray-600">{sym.pinyin}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
             <div className="mt-12 border-t-2 border-gray-300 pt-6 text-center text-gray-500">
               <p className="text-xl">Great job practicing! 加油！(Jiā yóu - Keep it up!)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const VoiceSettingsScreen = () => {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 p-8">
+        <div className="max-w-4xl mx-auto">
+          <button
+            onClick={() => setCurrentScreen('home')}
+            className="mb-6 bg-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 text-xl hover:bg-gray-100"
+          >
+            <Home size={24} /> Home
+          </button>
+
+          <div className="bg-white rounded-3xl p-12 shadow-2xl">
+            <h2 className="text-4xl font-bold text-purple-700 mb-8 text-center">🎙️ Voice Settings</h2>
+
+            <div className="mb-8">
+              <label className="block text-2xl font-bold text-gray-700 mb-4">
+                Select Voice:
+              </label>
+              <select
+                value={selectedVoice?.name || ''}
+                onChange={(e) => {
+                  const voice = availableVoices.find(v => v.name === e.target.value);
+                  setSelectedVoice(voice);
+                }}
+                className="w-full p-4 text-xl border-2 border-purple-300 rounded-xl focus:border-purple-500 focus:outline-none"
+              >
+                {availableVoices.length === 0 && (
+                  <option>Loading voices...</option>
+                )}
+                {availableVoices.map((voice, index) => (
+                  <option key={index} value={voice.name}>
+                    {voice.name} ({voice.lang})
+                  </option>
+                ))}
+              </select>
+              {availableVoices.length === 0 && (
+                <p className="mt-4 text-gray-600 text-lg">
+                  No Chinese voices found. Your device may not have Chinese language support installed.
+                </p>
+              )}
+            </div>
+
+            {selectedVoice && (
+              <div className="bg-purple-50 rounded-2xl p-8 mb-8">
+                <h3 className="text-2xl font-bold text-gray-700 mb-4">Current Voice:</h3>
+                <div className="space-y-2 text-lg">
+                  <p><strong>Name:</strong> {selectedVoice.name}</p>
+                  <p><strong>Language:</strong> {selectedVoice.lang}</p>
+                  <p><strong>Quality:</strong> {selectedVoice.localService ? '🎯 High (Local)' : '☁️ Standard (Online)'}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <button
+                onClick={() => speakChinese('你好')}
+                className="w-full bg-green-500 hover:bg-green-600 text-white text-2xl px-8 py-6 rounded-full shadow-xl flex items-center justify-center gap-4"
+              >
+                <Volume2 size={32} />
+                <span>Test Voice: "你好" (Hello)</span>
+              </button>
+
+              <button
+                onClick={() => speakChinese('ㄅㄆㄇㄈ')}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white text-2xl px-8 py-6 rounded-full shadow-xl flex items-center justify-center gap-4"
+              >
+                <Volume2 size={32} />
+                <span>Test Voice: "ㄅㄆㄇㄈ"</span>
+              </button>
+
+              <button
+                onClick={() => speakChinese('媽媽爸爸')}
+                className="w-full bg-pink-500 hover:bg-pink-600 text-white text-2xl px-8 py-6 rounded-full shadow-xl flex items-center justify-center gap-4"
+              >
+                <Volume2 size={32} />
+                <span>Test Voice: "媽媽爸爸"</span>
+              </button>
+            </div>
+
+            <div className="mt-8 p-6 bg-yellow-50 rounded-2xl">
+              <h4 className="text-xl font-bold text-gray-700 mb-2">💡 Tips for Better Voices:</h4>
+              <ul className="space-y-2 text-lg text-gray-700">
+                <li>• Look for voices labeled "Enhanced" or "Premium" for better quality</li>
+                <li>• "zh-TW" is Traditional Chinese (Taiwan), "zh-CN" is Simplified Chinese</li>
+                <li>• Local voices (🎯) work offline and sound more natural</li>
+                <li>• On iOS/Mac, try "Meijia" or "Tingting" for Taiwan voices</li>
+                <li>• You may need to download voices in your device's language settings</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -372,6 +528,7 @@ const BopomofoApp = () => {
       {currentScreen === 'symbols' && <SymbolScreen />}
       {currentScreen === 'flashcards' && <FlashcardScreen />}
       {currentScreen === 'worksheet' && <WorksheetScreen />}
+      {currentScreen === 'settings' && <VoiceSettingsScreen />}
     </div>
   );
 };
