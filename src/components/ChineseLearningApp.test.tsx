@@ -1,6 +1,7 @@
 import { describe, expect, test, afterEach, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor, within, cleanup } from '@testing-library/react';
-import ChineseLearningApp, { VOCABULARY } from './ChineseLearningApp';
+import ChineseLearningApp from './ChineseLearningApp';
+import { VOCABULARY } from '../data/vocabulary';
 
 const getFilterCount = () => screen.getAllByTestId('filter-count')[0];
 
