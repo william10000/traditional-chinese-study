@@ -70,6 +70,49 @@ describe('Kid Mode enhancements', () => {
       expect(getChar()).toBe(afterNext);
     });
   });
+
+  it('shows and updates study progress in Kid Mode after answering', async () => {
+    mockLocalStorage(null);
+    render(<ChineseLearningApp />);
+
+    await waitFor(() => {
+      expect(getLatestByTestId('kid-mode-toggle')).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    // Reveal answer to show buttons (click card to ensure it toggles)
+    fireEvent.click(getLatestByTestId('flashcard-card'));
+    // Fallback: use toggle button if needed
+    if (!screen.queryByRole('button', { name: /Got It!/i })) {
+      fireEvent.click(getLatestByTestId('toggle-answer-button'));
+    }
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Got It!/i })).toBeInTheDocument();
+    });
+
+    // Mark as correct to increment stats
+    fireEvent.click(screen.getByRole('button', { name: /Got It!/i }));
+
+    // Stats should now appear
+    await waitFor(() => {
+      expect(screen.getByTestId('kid-mode-study-stats')).toBeInTheDocument();
+    });
+
+    // Reveal answer on next card and mark incorrect
+    fireEvent.click(getLatestByTestId('flashcard-card'));
+    if (!screen.queryByRole('button', { name: /Need Practice/i })) {
+      fireEvent.click(getLatestByTestId('toggle-answer-button'));
+    }
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Need Practice/i })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Need Practice/i }));
+
+    // Stats should update (at least total increments)
+    await waitFor(() => {
+      const stats = screen.getByTestId('kid-mode-study-stats');
+      expect(stats.textContent).toMatch(/Study Progress: \d+\/\d+ correct/);
+    });
+  });
 });
 
 

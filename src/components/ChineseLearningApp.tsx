@@ -595,6 +595,18 @@ const lessonOptions = useMemo(() => {
           </div>
         )}
 
+        {/* Kid Mode Study Stats */}
+        {kidMode && studyStats.total > 0 && (
+          <div className="bg-white rounded-lg p-4 mb-8 shadow-lg text-center max-w-4xl mx-auto" data-testid="kid-mode-study-stats">
+            <div className="text-lg font-semibold text-gray-700">
+              Study Progress: {studyStats.correct}/{studyStats.total} correct
+              <span className="text-green-600 ml-2">
+                ({studyStats.total > 0 ? Math.round((studyStats.correct / studyStats.total) * 100) : 0}%)
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Flashcard */}
         {currentWord && (
           <section
