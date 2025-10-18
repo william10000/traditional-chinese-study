@@ -41,3 +41,5 @@ coverage/
 .nuxt/
 .vuepress/dist
 .playwright-mcp
+playwright-report/
+test-results/

@@ -159,6 +159,20 @@ pnpm run deploy
 - Coverage reports (HTML + lcov + text) are emitted to `coverage/` when you run `pnpm run test:coverage`.
 - The Vitest environment uses `jsdom`, so DOM APIs such as `document` and `window` are available.
 
+### End-to-End (E2E) with Playwright
+
+Playwright runs E2E tests against the production build served via `vite preview`, ensuring the correct `base` path (`/traditional-chinese-study/`).
+
+Commands:
+```bash
+pnpm e2e          # run headless in all browsers
+pnpm e2e:headed   # run with a visible browser for debugging
+pnpm e2e:ui       # use Playwright UI mode
+pnpm e2e:report   # open the last HTML report
+```
+
+Details and guidance: see `docs/e2e-playwright-plan.md`.
+
 ## 🌍 Browser Support
 
 - Chrome/Edge 88+
