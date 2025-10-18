@@ -28,6 +28,108 @@ const formatLessonLabel = (lesson: string) => {
 
 /* Moved to ../data/vocabulary */
 
+const lessonRank = (lesson: string) => {
+  const l = lesson.trim();
+  const m = l.match(/^L(\d+)$/i);
+  if (m) return parseInt(m[1], 10);
+  const t = l.match(/^Test(\d+)$/i);
+  if (t) return 100 + parseInt(t[1], 10);
+  return Number.MAX_SAFE_INTEGER;
+};
+
+type SentenceCard = { characters: string; pinyin: string; english: string };
+
+const buildSentenceCards = (
+  available: typeof VOCABULARY,
+  desiredCount = 24
+): SentenceCard[] => {
+  if (!available.length) return [];
+
+  const byChars = new Map(available.map(w => [w.characters, w] as const));
+
+  const pick = <T,>(arr: T[]) => (arr.length ? arr[Math.floor(Math.random() * arr.length)] : undefined);
+
+  const fromChars = (chars: string[]) => chars.map(c => byChars.get(c)).filter(Boolean) as typeof available;
+
+  const subjects = fromChars([
+    '我','你','他','她','我們','你們','他們','媽媽','爸爸','老師','同學','小朋友','王','李大文','林東明','陳心美','張莉','方友朋'
+  ]);
+  const advs = fromChars(['很','也','都']);
+  const verbsTransitive = fromChars(['喜歡','吃','喝','看','買','要']);
+  const verbObjects = fromChars(['跑步','跳舞','聽音樂','看書','看電視','打球','游泳']);
+  const objects = fromChars([
+    '蘋果','麵包','牛奶','書','中文','巧克力','披薩','蛋糕','香蕉','水果','照片','手機','校車','學校','公園','超級市場','果汁','湯','糖果','魚','玉米','米','麵'
+  ]);
+  const adjectives = fromChars(['冷','熱','漂亮','高興','舒服','新']);
+  const timeWords = fromChars(['今天','明天','昨天','現在','週末']);
+  const places = fromChars(['學校','公園','家','外面','裡面','前面','後面','中間','房間','超級市場']);
+  const zai = byChars.get('在');
+  const ma = byChars.get('嗎');
+
+  const joinChars = (parts: typeof available) => parts.map(w => w.characters).join('');
+  const joinPinyin = (parts: typeof available) => parts.map(w => w.pinyin).join(' ');
+  const joinEnglish = (parts: typeof available) => parts.map(w => w.english).join(' ');
+
+  const cards: SentenceCard[] = [];
+  const max = Math.max(6, desiredCount);
+  let guard = 0;
+  while (cards.length < max && guard++ < max * 10) {
+    const templates: (() => SentenceCard | undefined)[] = [];
+
+    // Template A: S (+adv?) + Vt + O (+ 嗎)?
+    templates.push(() => {
+      const s = pick(subjects);
+      const v = pick(verbsTransitive);
+      const o = pick(objects);
+      if (!s || !v || !o) return undefined;
+      const maybeAdv = Math.random() < 0.4 ? pick(advs) : undefined;
+      const parts = [s, ...(maybeAdv ? [maybeAdv] : []), v, o];
+      const endQuestion = ma && Math.random() < 0.25;
+      const characters = joinChars(parts) + (endQuestion ? ma.characters + '？' : '。');
+      const pinyin = joinPinyin(parts) + (endQuestion ? ` ${ma.pinyin} ?` : ' .');
+      const english = joinEnglish(parts) + (endQuestion ? ' ?' : ' .');
+      return { characters, pinyin, english };
+    });
+
+    // Template B: S 很 + ADJ
+    templates.push(() => {
+      const s = pick(subjects);
+      const h = advs.find(a => a.characters === '很');
+      const adj = pick(adjectives);
+      if (!s || !h || !adj) return undefined;
+      const parts = [s, h, adj];
+      return {
+        characters: joinChars(parts) + '。',
+        pinyin: joinPinyin(parts) + ' .',
+        english: joinEnglish(parts) + ' .'
+      };
+    });
+
+    // Template C: (TIME?) S 在 PLACE + VO
+    templates.push(() => {
+      const t = Math.random() < 0.5 ? pick(timeWords) : undefined;
+      const s = pick(subjects);
+      const place = pick(places);
+      const vo = pick(verbObjects);
+      if (!s || !place || !vo || !zai) return undefined;
+      const parts = [...(t ? [t] : []), s, zai, place, vo];
+      return {
+        characters: joinChars(parts) + '。',
+        pinyin: joinPinyin(parts) + ' .',
+        english: joinEnglish(parts) + ' .'
+      };
+    });
+
+    const make = pick(templates)?.();
+    if (make) {
+      if (!cards.some(c => c.characters === make.characters)) {
+        cards.push(make);
+      }
+    }
+  }
+  return cards;
+};
+
 const ChineseLearningApp = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -36,6 +138,7 @@ const ChineseLearningApp = () => {
   const [selectedBook, setSelectedBook] = useState<string>(ALL_OPTION);
   const [selectedLesson, setSelectedLesson] = useState<string>(ALL_OPTION);
   const [studyMode, setStudyMode] = useState<'sequential' | 'random'>('sequential');
+  const [cardType, setCardType] = useState<'word' | 'sentence'>('word');
   const [cardOrder, setCardOrder] = useState<number[]>([]);
   const [studyStats, setStudyStats] = useState<StudyStats>({ correct: 0, total: 0 });
 
@@ -111,6 +214,28 @@ const lessonOptions = useMemo(() => {
     });
   }, [selectedLevel, selectedBook, selectedLesson]);
 
+  const availableUpToLesson = useMemo(() => {
+    const base = VOCABULARY.filter(word => {
+      if (selectedLevel !== ALL_OPTION && word.level !== selectedLevel) return false;
+      if (selectedBook !== ALL_OPTION && word.book !== selectedBook) return false;
+      return true;
+    });
+    if (selectedLesson === ALL_OPTION) return base;
+    const cutoff = lessonRank(selectedLesson);
+    return base.filter(w => lessonRank(w.lesson) <= cutoff);
+  }, [selectedLevel, selectedBook, selectedLesson]);
+
+  const sentenceCards = useMemo(() => {
+    const desired = Math.min(48, Math.max(12, Math.floor(availableUpToLesson.length * 0.6)));
+    return buildSentenceCards(availableUpToLesson, desired);
+  }, [availableUpToLesson]);
+
+  const activeCards = useMemo(() => {
+    return cardType === 'word'
+      ? filteredVocabulary.map(w => ({ characters: w.characters, pinyin: w.pinyin, english: w.english }))
+      : sentenceCards;
+  }, [cardType, filteredVocabulary, sentenceCards]);
+
   useEffect(() => {
     setSelectedBook(ALL_OPTION);
     setSelectedLesson(ALL_OPTION);
@@ -142,9 +267,9 @@ const lessonOptions = useMemo(() => {
     return parts.join(' • ');
   }, [selectedLevel, selectedBook, selectedLesson, bookOptions.length, lessonOptions.length]);
 
-  // Initialize card order when vocabulary changes
+  // Initialize card order when active cards change
   useEffect(() => {
-    const indices = filteredVocabulary.map((_, index) => index);
+    const indices = activeCards.map((_, index) => index);
     if (studyMode === 'random') {
       setCardOrder(indices.sort(() => Math.random() - 0.5));
     } else {
@@ -152,11 +277,11 @@ const lessonOptions = useMemo(() => {
     }
     setCurrentCardIndex(0);
     setShowAnswer(false);
-  }, [filteredVocabulary, studyMode]);
+  }, [activeCards, studyMode]);
 
-  const hasCards = filteredVocabulary.length > 0 && cardOrder.length > 0;
+  const hasCards = activeCards.length > 0 && cardOrder.length > 0;
   const currentWordIndex = hasCards ? cardOrder[currentCardIndex] : 0;
-  const currentWord = hasCards ? filteredVocabulary[currentWordIndex] : undefined;
+  const currentItem = hasCards ? activeCards[currentWordIndex] : undefined;
 
   const nextCard = () => {
     if (!hasCards) {
@@ -418,9 +543,9 @@ const lessonOptions = useMemo(() => {
   };
 
   const playAudio = () => {
-    if (!currentWord) return;
+    if (!currentItem) return;
     try {
-      const utterance = new SpeechSynthesisUtterance(currentWord.characters);
+      const utterance = new SpeechSynthesisUtterance(currentItem.characters);
       utterance.lang = 'zh-TW';
       utterance.rate = 0.75; // 15% slower for elementary learners
       // Prefer zh-TW voice if available
@@ -557,6 +682,35 @@ const lessonOptions = useMemo(() => {
             </div>
           </div>
 
+          {/* Card Type */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div className="space-y-2 md:col-start-4">
+              <label className="block text-sm font-medium text-gray-700">Card Type:</label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCardType('word')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
+                    cardType === 'word'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Vocabulary
+                </button>
+                <button
+                  onClick={() => setCardType('sentence')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
+                    cardType === 'sentence'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Sentences
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
             <div
               className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 px-3 py-2 rounded-lg"
@@ -608,7 +762,7 @@ const lessonOptions = useMemo(() => {
         )}
 
         {/* Flashcard */}
-        {currentWord && (
+        {currentItem && (
           <section
             className="bg-white rounded-2xl shadow-2xl px-4 py-6 sm:px-8 sm:py-8 max-w-4xl mx-auto mb-8"
             data-testid="flashcard-section"
@@ -618,14 +772,13 @@ const lessonOptions = useMemo(() => {
                 {/* Progress */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <span className="text-sm text-gray-600 text-center sm:text-left">
-                    Card {currentCardIndex + 1} of {filteredVocabulary.length} • {currentWord.lesson} •
-                    Mode: {studyMode === 'random' ? 'Random 隨機' : 'Sequential 順序'}
+                    Card {currentCardIndex + 1} of {activeCards.length} • {studyMode === 'random' ? 'Random 隨機' : 'Sequential 順序'}
                   </span>
                   <div className="w-full sm:w-64">
                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                       <div
                         className="h-2 bg-gradient-to-r from-red-600 to-orange-500 rounded-full transition-all duration-500"
-                        style={{ width: `${((currentCardIndex + 1) / filteredVocabulary.length) * 100}%` }}
+                        style={{ width: `${((currentCardIndex + 1) / activeCards.length) * 100}%` }}
                       ></div>
                     </div>
                   </div>
@@ -643,7 +796,7 @@ const lessonOptions = useMemo(() => {
                   {!showAnswer ? (
                     <div className="space-y-6 sm:space-y-8">
                       <div className="text-7xl sm:text-8xl font-bold text-red-800 tracking-wide" data-testid="flashcard-character">
-                        {currentWord.characters}
+                        {currentItem.characters}
                       </div>
                       <p className="text-gray-500 text-base sm:text-lg flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 animate-pulse">
                         <span>Click to reveal pinyin & meaning • 點擊顯示拼音和含義</span>
@@ -652,13 +805,13 @@ const lessonOptions = useMemo(() => {
                   ) : (
                     <div className="space-y-5 sm:space-y-6">
                       <div className="text-7xl sm:text-8xl font-bold text-red-800 tracking-wide" data-testid="flashcard-character">
-                        {currentWord.characters}
+                        {currentItem.characters}
                       </div>
                       <div className="text-2xl sm:text-3xl text-red-600 font-medium tracking-wider">
-                        {currentWord.pinyin}
+                        {currentItem.pinyin}
                       </div>
                       <div className="text-3xl sm:text-4xl text-gray-800 font-semibold px-4 py-2 bg-yellow-100 rounded-lg inline-block">
-                        {currentWord.english}
+                        {currentItem.english}
                       </div>
                       <p className="text-gray-500 text-base sm:text-lg">
                         Click to hide answer • 點擊隱藏答案
@@ -696,7 +849,7 @@ const lessonOptions = useMemo(() => {
                       className="bg-white text-red-600 border border-red-200 px-5 py-3 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2 shadow-sm w-full"
                       aria-label="Back"
                       data-testid="back-button"
-                      disabled={filteredVocabulary.length <= 1}
+                      disabled={activeCards.length <= 1}
                     >
                       <ChevronLeft size={20} />
                       Back
@@ -706,7 +859,7 @@ const lessonOptions = useMemo(() => {
                       className="bg-green-600 text-white px-5 py-3 rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
                       aria-label="Next"
                       data-testid="next-button"
-                      disabled={filteredVocabulary.length <= 1}
+                      disabled={activeCards.length <= 1}
                     >
                       <ChevronRight size={20} />
                       Next
@@ -763,7 +916,7 @@ const lessonOptions = useMemo(() => {
                     <button
                       onClick={prevCard}
                       className="flex flex-col items-center justify-center bg-white text-red-600 border border-red-200 rounded-xl py-3 px-2 hover:bg-red-100 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                      disabled={filteredVocabulary.length <= 1}
+                      disabled={activeCards.length <= 1}
                       aria-label="Previous card"
                     >
                       <ChevronLeft size={20} />
@@ -772,7 +925,7 @@ const lessonOptions = useMemo(() => {
                     <button
                       onClick={nextCard}
                       className="flex flex-col items-center justify-center bg-white text-red-600 border border-red-200 rounded-xl py-3 px-2 hover:bg-red-100 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                      disabled={filteredVocabulary.length <= 1}
+                      disabled={activeCards.length <= 1}
                       aria-label="Next card"
                     >
                       <ChevronRight size={20} />
@@ -800,24 +953,26 @@ const lessonOptions = useMemo(() => {
 
                 <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 space-y-3 shadow-inner">
                   <h4 className="text-sm font-semibold text-orange-700 text-center">Card Details</h4>
-                  <div className="text-sm text-gray-700 space-y-2">
-                    <div className="flex justify-between">
-                      <span className="font-medium">Lesson</span>
-                      <span className="text-red-600">{formatLessonLabel(currentWord.lesson)}</span>
+                  {cardType === 'word' && filteredVocabulary[cardOrder[currentCardIndex]] && (
+                    <div className="text-sm text-gray-700 space-y-2">
+                      <div className="flex justify-between">
+                        <span className="font-medium">Lesson</span>
+                        <span className="text-red-600">{formatLessonLabel((filteredVocabulary[cardOrder[currentCardIndex]] as any)?.lesson)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium">Book</span>
+                        <span>{(filteredVocabulary[cardOrder[currentCardIndex]] as any)?.book}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium">Level</span>
+                        <span>{(filteredVocabulary[cardOrder[currentCardIndex]] as any)?.level}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium">Characters</span>
+                        <span>{(filteredVocabulary[cardOrder[currentCardIndex]] as any)?.characters.length}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Book</span>
-                      <span>{currentWord.book}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Level</span>
-                      <span>{currentWord.level}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Characters</span>
-                      <span>{currentWord.characters.length}</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
               )}

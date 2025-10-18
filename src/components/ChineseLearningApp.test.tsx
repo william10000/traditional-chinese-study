@@ -99,6 +99,47 @@ describe('ChineseLearningApp flashcards', () => {
   });
 });
 
+describe('ChineseLearningApp sentence flashcards', () => {
+  test('renders sentence flashcard and toggles answer', async () => {
+    mockLocalStorage('false');
+    render(<ChineseLearningApp />);
+
+    // Switch to sentence mode
+    fireEvent.click(screen.getByRole('button', { name: /Sentences/i }));
+
+    // Ensure a sentence appears on the front (Chinese + punctuation)
+    const frontCharacterEl = getPrimaryCharacter();
+    const frontText = frontCharacterEl.textContent ?? '';
+    expect(frontText).not.toEqual('');
+
+    // Reveal answer (should show pinyin + English)
+    fireEvent.click(getPrimaryCard());
+    const revealedText = getPrimaryCard().textContent ?? '';
+    expect(revealedText).toMatch(/Click to hide answer/i);
+    // The revealed content includes Latin letters due to pinyin/English
+    expect(revealedText).toMatch(/[A-Za-z]/);
+  });
+
+  test('navigates to next sentence and changes the card content', async () => {
+    mockLocalStorage('false');
+    render(<ChineseLearningApp />);
+
+    // Switch to sentence mode
+    fireEvent.click(screen.getByRole('button', { name: /Sentences/i }));
+
+    const firstSentence = getPrimaryCharacter().textContent ?? '';
+    expect(firstSentence).not.toEqual('');
+
+    const getFlashcardSection = () => screen.getAllByTestId('flashcard-section')[0];
+    const nextBtn = within(getFlashcardSection()).getAllByRole('button', { name: /Next card/i })[0];
+    fireEvent.click(nextBtn);
+
+    await waitFor(() => {
+      expect(getPrimaryCharacter().textContent).not.toBe(firstSentence);
+    }, { timeout: 2000 });
+  });
+});
+
 describe('ChineseLearningApp filters', () => {
   test('shows total vocabulary count when no filters applied', () => {
     mockLocalStorage('false');
