@@ -16,6 +16,15 @@ export default defineConfig(({ mode }) => ({
   test: {
     environment: 'jsdom',
     setupFiles: './vitest.setup.ts',
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    exclude: [
+      'node_modules/**',
+      'dist/**',
+      'tests/**',
+      'playwright.config.ts',
+      'playwright-report/**',
+      'test-results/**'
+    ],
     coverage: {
       reporter: ['text', 'html', 'lcov'],
       exclude: [
