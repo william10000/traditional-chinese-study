@@ -16,6 +16,8 @@ const getLatestByTestId = (testId: string) => {
   return all[all.length - 1];
 };
 
+const waitForCardTransition = (ms = 600) => new Promise(resolve => setTimeout(resolve, ms));
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -30,13 +32,12 @@ describe('Kid Mode enhancements', () => {
       expect(getLatestByTestId('kid-mode-toggle')).toHaveAttribute('aria-pressed', 'true');
     });
 
-    // Reveal answer
-    fireEvent.click(getLatestByTestId('toggle-answer-button'));
+    // Reveal answer by clicking the card
+    fireEvent.click(getLatestByTestId('flashcard-card'));
 
     // Answer buttons visible
-    expect(getLatestByTestId('kid-mode-answer-buttons')).toBeInTheDocument();
-    expect(screen.getByText(/Need Practice/i)).toBeInTheDocument();
-    expect(screen.getByText(/Got It!/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Incorrect/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Got It!/i })).toBeInTheDocument();
   });
 
   it('navigates back with Back button in Kid Mode', async () => {
@@ -79,14 +80,10 @@ describe('Kid Mode enhancements', () => {
       expect(getLatestByTestId('kid-mode-toggle')).toHaveAttribute('aria-pressed', 'true');
     });
 
-    // Reveal answer to show buttons (click card to ensure it toggles)
+    // Reveal answer to show buttons
     fireEvent.click(getLatestByTestId('flashcard-card'));
-    // Fallback: use toggle button if needed
-    if (!screen.queryByRole('button', { name: /Got It!/i })) {
-      fireEvent.click(getLatestByTestId('toggle-answer-button'));
-    }
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Got It!/i })).toBeInTheDocument();
+      expect(screen.getByTestId('answer-buttons-container')).toBeInTheDocument();
     });
 
     // Mark as correct to increment stats
@@ -97,15 +94,15 @@ describe('Kid Mode enhancements', () => {
       expect(screen.getByTestId('kid-mode-study-stats')).toBeInTheDocument();
     });
 
+    // Allow next card to load before interacting again
+    await waitForCardTransition();
+
     // Reveal answer on next card and mark incorrect
     fireEvent.click(getLatestByTestId('flashcard-card'));
-    if (!screen.queryByRole('button', { name: /Need Practice/i })) {
-      fireEvent.click(getLatestByTestId('toggle-answer-button'));
-    }
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Need Practice/i })).toBeInTheDocument();
+      expect(screen.getByTestId('answer-buttons-container')).toBeInTheDocument();
     });
-    fireEvent.click(screen.getByRole('button', { name: /Need Practice/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Incorrect/i }));
 
     // Stats should update (at least total increments)
     await waitFor(() => {
@@ -124,19 +121,20 @@ describe('Kid Mode enhancements', () => {
 
     // First: correct
     fireEvent.click(getLatestByTestId('flashcard-card'));
-    if (!screen.queryByRole('button', { name: /Got It!/i })) {
-      fireEvent.click(getLatestByTestId('toggle-answer-button'));
-    }
-    await waitFor(() => expect(screen.getByRole('button', { name: /Got It!/i })).toBeInTheDocument());
+    await waitFor(() => {
+      expect(screen.getByTestId('answer-buttons-container')).toBeInTheDocument();
+    });
     fireEvent.click(screen.getByRole('button', { name: /Got It!/i }));
+
+    // Allow next card to load
+    await waitForCardTransition();
 
     // Second: incorrect
     fireEvent.click(getLatestByTestId('flashcard-card'));
-    if (!screen.queryByRole('button', { name: /Need Practice/i })) {
-      fireEvent.click(getLatestByTestId('toggle-answer-button'));
-    }
-    await waitFor(() => expect(screen.getByRole('button', { name: /Need Practice/i })).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: /Need Practice/i }));
+    await waitFor(() => {
+      expect(screen.getByTestId('answer-buttons-container')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Incorrect/i }));
 
     // Assert exact 1/2 and 50%
     const stats = await screen.findByTestId('kid-mode-study-stats');

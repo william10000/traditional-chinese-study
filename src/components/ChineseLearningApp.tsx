@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, RotateCcw, Printer, Shuffle, Check, X, Volume2, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { ChevronLeft, ChevronRight, RotateCcw, Printer, Shuffle, Check, X, Volume2, Square } from 'lucide-react';
 import { StudyStats } from '../types';
 import { VOCABULARY } from '../data/vocabulary';
 
@@ -141,6 +141,11 @@ const ChineseLearningApp = () => {
   const [cardType, setCardType] = useState<'word' | 'sentence'>('word');
   const [cardOrder, setCardOrder] = useState<number[]>([]);
   const [studyStats, setStudyStats] = useState<StudyStats>({ correct: 0, total: 0 });
+  // Voice answer state (browser-only, no new packages)
+  const recognitionRef = useRef<any>(null);
+  const [listening, setListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [voiceResult, setVoiceResult] = useState<'correct' | 'incorrect' | null>(null);
 
   // Persist Kid Mode; default ON for first-time visitors
   useEffect(() => {
@@ -279,6 +284,11 @@ const lessonOptions = useMemo(() => {
     setShowAnswer(false);
   }, [activeCards, studyMode]);
 
+  useEffect(() => {
+    setVoiceResult(null);
+    setTranscript('');
+  }, [currentCardIndex]);
+
   const hasCards = activeCards.length > 0 && cardOrder.length > 0;
   const currentWordIndex = hasCards ? cardOrder[currentCardIndex] : 0;
   const currentItem = hasCards ? activeCards[currentWordIndex] : undefined;
@@ -330,6 +340,105 @@ const lessonOptions = useMemo(() => {
       total: prev.total + 1
     }));
     setTimeout(nextCard, 500);
+  };
+
+  // --- Voice Recognition and Fuzzy Matching (browser-only) ---
+  const supportsSpeechRecognition = typeof window !== 'undefined' &&
+    (Boolean((window as any).SpeechRecognition) || Boolean((window as any).webkitSpeechRecognition));
+
+  const startListening = () => {
+    if (!supportsSpeechRecognition || listening) return;
+    try {
+      const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const recognition = new SR();
+      recognition.lang = 'zh-TW';
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      recognition.continuous = false;
+      recognition.onresult = (e: any) => {
+        let text = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const res = e.results[i];
+          if (res && res[0] && typeof res[0].transcript === 'string') {
+            text += res[0].transcript;
+          }
+        }
+        setTranscript(text.trim());
+      };
+      recognition.onerror = () => {
+        setListening(false);
+        recognitionRef.current = null;
+      };
+      recognition.onend = () => {
+        setListening(false);
+        recognitionRef.current = null;
+        // Auto-check when user stops speaking
+        if (transcript) {
+          checkVoiceAnswer();
+        }
+      };
+      setTranscript('');
+      setVoiceResult(null);
+      setListening(true);
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch {
+      setListening(false);
+      recognitionRef.current = null;
+    }
+  };
+
+  const stopListening = () => {
+    try {
+      recognitionRef.current?.stop?.();
+    } finally {
+      setListening(false);
+      recognitionRef.current = null;
+    }
+  };
+
+  const normalizeChinese = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[\s,.;:!?！？。．，、·'"“”‘’\-—()（）【】\[\]…]/g, '')
+      .trim();
+
+  const levenshteinDistance = (a: string, b: string) => {
+    if (a === b) return 0;
+    const n = a.length;
+    const m = b.length;
+    if (n === 0) return m;
+    if (m === 0) return n;
+    const dp = new Array(m + 1);
+    for (let j = 0; j <= m; j++) dp[j] = j;
+    for (let i = 1; i <= n; i++) {
+      let prev = dp[0];
+      dp[0] = i;
+      for (let j = 1; j <= m; j++) {
+        const temp = dp[j];
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        dp[j] = Math.min(dp[j] + 1, dp[j - 1] + 1, prev + cost);
+        prev = temp;
+      }
+    }
+    return dp[m];
+  };
+
+  const similarity = (a: string, b: string) => {
+    const maxLen = Math.max(a.length, b.length) || 1;
+    const d = levenshteinDistance(a, b);
+    return 1 - d / maxLen;
+  };
+
+  const checkVoiceAnswer = () => {
+    if (!currentItem || !transcript) return;
+    const hyp = normalizeChinese(transcript);
+    const gold = normalizeChinese(currentItem.characters);
+    const score = similarity(hyp, gold);
+    const threshold = cardType === 'sentence' ? 0.7 : 0.8;
+    const ok = score >= threshold;
+    setVoiceResult(ok ? 'correct' : 'incorrect');
+    markAnswer(ok);
   };
 
   const generateWorksheet = () => {
@@ -784,6 +893,28 @@ const lessonOptions = useMemo(() => {
                   </div>
                 </div>
 
+                {/* Answer Buttons (when answer is shown, within flashcard container) */}
+                {showAnswer && (
+                  <div className="bg-white rounded-xl shadow-lg p-6" data-testid="answer-buttons-container">
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => markAnswer(false)}
+                        className="bg-red-500 text-white px-5 py-3 rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
+                      >
+                        <X size={20} />
+                        Incorrect
+                      </button>
+                      <button
+                        onClick={() => markAnswer(true)}
+                        className="bg-green-500 text-white px-5 py-3 rounded-xl hover:bg-green-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
+                      >
+                        <Check size={20} />
+                        Got It!
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Card Content */}
                 <div
                   className="relative text-center cursor-pointer min-h-[260px] sm:min-h-[340px] flex flex-col justify-center border-2 border-dashed border-red-100 rounded-2xl bg-gradient-to-b from-white to-red-50 hover:border-red-300 transition-colors shadow-inner"
@@ -823,7 +954,7 @@ const lessonOptions = useMemo(() => {
                 {/* Kid Mode Primary Controls */}
                 {kidMode && (
                   <div
-                    className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+                    className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6"
                     data-testid="kid-mode-primary-controls"
                   >
                     <button
@@ -835,75 +966,28 @@ const lessonOptions = useMemo(() => {
                       <Volume2 size={20} />
                       Play Audio
                     </button>
-                    <button
-                      onClick={() => setShowAnswer(prev => !prev)}
-                      className="bg-yellow-500 text-white px-5 py-3 rounded-xl hover:bg-yellow-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
-                      aria-label="Toggle answer"
-                      data-testid="toggle-answer-button"
-                    >
-                      {showAnswer ? <EyeOff size={20} /> : <Eye size={20} />}
-                      {showAnswer ? 'Hide Answer' : 'Reveal Answer'}
-                    </button>
-                    <button
-                      onClick={prevCard}
-                      className="bg-white text-red-600 border border-red-200 px-5 py-3 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2 shadow-sm w-full"
-                      aria-label="Back"
-                      data-testid="back-button"
-                      disabled={activeCards.length <= 1}
-                    >
-                      <ChevronLeft size={20} />
-                      Back
-                    </button>
-                    <button
-                      onClick={nextCard}
-                      className="bg-green-600 text-white px-5 py-3 rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
-                      aria-label="Next"
-                      data-testid="next-button"
-                      disabled={activeCards.length <= 1}
-                    >
-                      <ChevronRight size={20} />
-                      Next
-                    </button>
-                  </div>
-                )}
-
-                {/* Answer Buttons (when answer is shown) */}
-                {showAnswer && !kidMode && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button
-                      onClick={() => markAnswer(false)}
-                      className="bg-red-500 text-white px-5 py-3 rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
-                    >
-                      <X size={20} />
-                      Need Practice
-                    </button>
-                    <button
-                      onClick={() => markAnswer(true)}
-                      className="bg-green-500 text-white px-5 py-3 rounded-xl hover:bg-green-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
-                    >
-                      <Check size={20} />
-                      Got It!
-                    </button>
-                  </div>
-                )}
-
-                {/* Kid Mode: Answer Buttons (when answer is shown) */}
-                {showAnswer && kidMode && (
-                  <div className="grid grid-cols-2 gap-3 mt-2" data-testid="kid-mode-answer-buttons">
-                    <button
-                      onClick={() => markAnswer(false)}
-                      className="bg-red-500 text-white px-5 py-3 rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
-                    >
-                      <X size={20} />
-                      Need Practice
-                    </button>
-                    <button
-                      onClick={() => markAnswer(true)}
-                      className="bg-green-500 text-white px-5 py-3 rounded-xl hover:bg-green-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
-                    >
-                      <Check size={20} />
-                      Got It!
-                    </button>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={prevCard}
+                        className="bg-white text-red-600 border border-red-200 px-5 py-3 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2 shadow-sm w-full"
+                        aria-label="Back"
+                        data-testid="back-button"
+                        disabled={activeCards.length <= 1}
+                      >
+                        <ChevronLeft size={20} />
+                        Back
+                      </button>
+                      <button
+                        onClick={nextCard}
+                        className="bg-green-600 text-white px-5 py-3 rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
+                        aria-label="Next"
+                        data-testid="next-button"
+                        disabled={activeCards.length <= 1}
+                      >
+                        <ChevronRight size={20} />
+                        Next
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -948,6 +1032,23 @@ const lessonOptions = useMemo(() => {
                       <RotateCcw size={18} />
                       <span className="mt-1 text-xs font-medium">Reset</span>
                     </button>
+                    {supportsSpeechRecognition && (
+                      <>
+                        <button
+                          onClick={listening ? stopListening : startListening}
+                          className={`flex flex-col items-center justify-center rounded-xl py-3 px-2 transition-colors shadow-sm ${
+                            listening
+                              ? 'bg-red-600 text-white hover:bg-red-700'
+                              : 'bg-white text-green-700 border border-green-200 hover:bg-green-50'
+                          }`}
+                          aria-label={listening ? 'Stop Check Voice' : 'Check Voice'}
+                          data-testid="voice-check-toggle"
+                        >
+                          {listening ? <Square size={18} /> : <Check size={18} />}
+                          <span className="mt-1 text-xs font-medium">{listening ? 'Stop' : 'Check Voice'}</span>
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -974,6 +1075,26 @@ const lessonOptions = useMemo(() => {
                     </div>
                   )}
                 </div>
+                {supportsSpeechRecognition && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-2 shadow-inner">
+                    <h4 className="text-sm font-semibold text-blue-700 text-center">Voice Answer (beta)</h4>
+                    <div className="text-xs text-gray-700 break-words min-h-[1.5rem]" data-testid="voice-transcript">
+                      {transcript ? `“${transcript}”` : 'Press Speak and say the answer in Chinese'}
+                    </div>
+                    {voiceResult && (
+                      <div
+                        className={`text-sm font-semibold text-center rounded-md px-2 py-1 ${
+                          voiceResult === 'correct'
+                            ? 'bg-green-50 border border-green-200 text-green-700'
+                            : 'bg-red-50 border border-red-200 text-red-700'
+                        }`}
+                        data-testid="voice-result"
+                      >
+                        {voiceResult === 'correct' ? 'Matched' : 'Not Matched'}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               )}
             </div>

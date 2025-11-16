@@ -104,7 +104,7 @@ describe('ChineseLearningApp flashcards', () => {
 
     // Reveal then mark incorrect
     fireEvent.click(getPrimaryCard());
-    fireEvent.click(screen.getByRole('button', { name: /Need Practice/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Incorrect/i }));
 
     // Stats visible and correct formatting
     await screen.findByText(/Study Progress: 0\/1 correct/i, {}, { timeout: 2000 });
@@ -128,7 +128,7 @@ describe('ChineseLearningApp flashcards', () => {
 
     // 2) incorrect on next card
     fireEvent.click(getPrimaryCard());
-    fireEvent.click(screen.getByRole('button', { name: /Need Practice/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Incorrect/i }));
 
     await screen.findByText(/Study Progress: 1\/2 correct/i, {}, { timeout: 2000 });
     const stats = screen.getByText(/Study Progress: 1\/2 correct/i).parentElement?.textContent || '';
@@ -309,6 +309,51 @@ describe('ChineseLearningApp filters', () => {
     const section = screen.getByTestId('vocab-overview-section');
     const cards = section.querySelectorAll('div.border-2.rounded-xl.cursor-pointer');
     expect(cards.length).toBe(expected);
+  });
+
+  test('clicking a vocabulary overview card jumps to that flashcard and hides the answer', async () => {
+    mockLocalStorage('false');
+    render(<ChineseLearningApp />);
+
+    const section = await screen.findByTestId('vocab-overview-section');
+    const overviewCards = section.querySelectorAll('div.border-2.rounded-xl.cursor-pointer');
+    expect(overviewCards.length).toBeGreaterThan(1);
+
+    // Reveal the current card so we can verify the click resets the answer state
+    fireEvent.click(getPrimaryCard());
+    await screen.findByText(/Click to hide answer/i);
+
+    const targetIndex = 1;
+    const targetWord = VOCABULARY[targetIndex];
+    const targetCard = overviewCards[targetIndex] as HTMLElement;
+    expect(targetCard).toHaveTextContent(targetWord.characters);
+
+    fireEvent.click(targetCard);
+
+    await waitFor(() => {
+      expect(getPrimaryCharacter().textContent).toBe(targetWord.characters);
+    });
+    expect(within(getPrimaryCard()).getByText(/Click to reveal/i)).toBeInTheDocument();
+  });
+
+  test('voice recognition controls render when speech recognition is supported', async () => {
+    mockLocalStorage('false');
+
+    const originalSpeechRecognition = (window as any).SpeechRecognition;
+    (window as any).SpeechRecognition = class {} as any;
+
+    try {
+      render(<ChineseLearningApp />);
+      const voiceToggle = await screen.findByTestId('voice-check-toggle');
+      expect(voiceToggle).toBeInTheDocument();
+      expect(screen.getByTestId('voice-transcript')).toHaveTextContent('Press Speak');
+    } finally {
+      if (originalSpeechRecognition === undefined) {
+        delete (window as any).SpeechRecognition;
+      } else {
+        (window as any).SpeechRecognition = originalSpeechRecognition;
+      }
+    }
   });
 
   test('filter cascade resets book and lesson to all and disables lesson appropriately', async () => {

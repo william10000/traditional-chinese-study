@@ -28,9 +28,13 @@ export default defineConfig(({ mode }) => ({
     coverage: {
       reporter: ['text', 'html', 'lcov'],
       exclude: [
-        '**/{vite,tailwind,postcss,eslint}.config.{js,cjs,ts}',
+        '**/{vite,tailwind,postcss,eslint,playwright}.config.{js,cjs,ts}',
         '**/.eslintrc.{js,cjs}',
         'dist/assets/**',
+        '**/*.spec.{ts,tsx}',
+        '**/*.test.{ts,tsx}',
+        'src/types/**',
+        'src/types.ts',
       ],
     },
   },
