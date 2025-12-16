@@ -336,26 +336,6 @@ describe('ChineseLearningApp filters', () => {
     expect(within(getPrimaryCard()).getByText(/Click to reveal/i)).toBeInTheDocument();
   });
 
-  test('voice recognition controls render when speech recognition is supported', async () => {
-    mockLocalStorage('false');
-
-    const originalSpeechRecognition = (window as any).SpeechRecognition;
-    (window as any).SpeechRecognition = class {} as any;
-
-    try {
-      render(<ChineseLearningApp />);
-      const voiceToggle = await screen.findByTestId('voice-check-toggle');
-      expect(voiceToggle).toBeInTheDocument();
-      expect(screen.getByTestId('voice-transcript')).toHaveTextContent('Press Speak');
-    } finally {
-      if (originalSpeechRecognition === undefined) {
-        delete (window as any).SpeechRecognition;
-      } else {
-        (window as any).SpeechRecognition = originalSpeechRecognition;
-      }
-    }
-  });
-
   test('filter cascade resets book and lesson to all and disables lesson appropriately', async () => {
     mockLocalStorage('false');
     render(<ChineseLearningApp />);

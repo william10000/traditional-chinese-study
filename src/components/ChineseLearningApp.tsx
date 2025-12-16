@@ -1,11 +1,23 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { ChevronLeft, ChevronRight, RotateCcw, Printer, Shuffle, Check, X, Volume2, Square } from 'lucide-react';
-import { StudyStats } from '../types';
-import { VOCABULARY } from '../data/vocabulary';
+import { useState, useEffect, useMemo } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
+  Printer,
+  Shuffle,
+  Check,
+  X,
+  Volume2,
+} from "lucide-react";
+import { StudyStats } from "../types";
+import { VOCABULARY } from "../data/vocabulary";
 
-const ALL_OPTION = 'all';
+const ALL_OPTION = "all";
 
-const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+const collator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: "base",
+});
 
 const getUniqueSortedValues = (values: string[]) =>
   Array.from(new Set(values)).sort((a, b) => collator.compare(a, b));
@@ -45,30 +57,93 @@ const buildSentenceCards = (
 ): SentenceCard[] => {
   if (!available.length) return [];
 
-  const byChars = new Map(available.map(w => [w.characters, w] as const));
+  const byChars = new Map(available.map((w) => [w.characters, w] as const));
 
-  const pick = <T,>(arr: T[]) => (arr.length ? arr[Math.floor(Math.random() * arr.length)] : undefined);
+  const pick = <T,>(arr: T[]) =>
+    arr.length ? arr[Math.floor(Math.random() * arr.length)] : undefined;
 
-  const fromChars = (chars: string[]) => chars.map(c => byChars.get(c)).filter(Boolean) as typeof available;
+  const fromChars = (chars: string[]) =>
+    chars.map((c) => byChars.get(c)).filter(Boolean) as typeof available;
 
   const subjects = fromChars([
-    '我','你','他','她','我們','你們','他們','媽媽','爸爸','老師','同學','小朋友','王','李大文','林東明','陳心美','張莉','方友朋'
+    "我",
+    "你",
+    "他",
+    "她",
+    "我們",
+    "你們",
+    "他們",
+    "媽媽",
+    "爸爸",
+    "老師",
+    "同學",
+    "小朋友",
+    "王",
+    "李大文",
+    "林東明",
+    "陳心美",
+    "張莉",
+    "方友朋",
   ]);
-  const advs = fromChars(['很','也','都']);
-  const verbsTransitive = fromChars(['喜歡','吃','喝','看','買','要']);
-  const verbObjects = fromChars(['跑步','跳舞','聽音樂','看書','看電視','打球','游泳']);
+  const advs = fromChars(["很", "也", "都"]);
+  const verbsTransitive = fromChars(["喜歡", "吃", "喝", "看", "買", "要"]);
+  const verbObjects = fromChars([
+    "跑步",
+    "跳舞",
+    "聽音樂",
+    "看書",
+    "看電視",
+    "打球",
+    "游泳",
+  ]);
   const objects = fromChars([
-    '蘋果','麵包','牛奶','書','中文','巧克力','披薩','蛋糕','香蕉','水果','照片','手機','校車','學校','公園','超級市場','果汁','湯','糖果','魚','玉米','米','麵'
+    "蘋果",
+    "麵包",
+    "牛奶",
+    "書",
+    "中文",
+    "巧克力",
+    "披薩",
+    "蛋糕",
+    "香蕉",
+    "水果",
+    "照片",
+    "手機",
+    "校車",
+    "學校",
+    "公園",
+    "超級市場",
+    "果汁",
+    "湯",
+    "糖果",
+    "魚",
+    "玉米",
+    "米",
+    "麵",
   ]);
-  const adjectives = fromChars(['冷','熱','漂亮','高興','舒服','新']);
-  const timeWords = fromChars(['今天','明天','昨天','現在','週末']);
-  const places = fromChars(['學校','公園','家','外面','裡面','前面','後面','中間','房間','超級市場']);
-  const zai = byChars.get('在');
-  const ma = byChars.get('嗎');
+  const adjectives = fromChars(["冷", "熱", "漂亮", "高興", "舒服", "新"]);
+  const timeWords = fromChars(["今天", "明天", "昨天", "現在", "週末"]);
+  const places = fromChars([
+    "學校",
+    "公園",
+    "家",
+    "外面",
+    "裡面",
+    "前面",
+    "後面",
+    "中間",
+    "房間",
+    "超級市場",
+  ]);
+  const zai = byChars.get("在");
+  const ma = byChars.get("嗎");
 
-  const joinChars = (parts: typeof available) => parts.map(w => w.characters).join('');
-  const joinPinyin = (parts: typeof available) => parts.map(w => w.pinyin).join(' ');
-  const joinEnglish = (parts: typeof available) => parts.map(w => w.english).join(' ');
+  const joinChars = (parts: typeof available) =>
+    parts.map((w) => w.characters).join("");
+  const joinPinyin = (parts: typeof available) =>
+    parts.map((w) => w.pinyin).join(" ");
+  const joinEnglish = (parts: typeof available) =>
+    parts.map((w) => w.english).join(" ");
 
   const cards: SentenceCard[] = [];
   const max = Math.max(6, desiredCount);
@@ -85,23 +160,25 @@ const buildSentenceCards = (
       const maybeAdv = Math.random() < 0.4 ? pick(advs) : undefined;
       const parts = [s, ...(maybeAdv ? [maybeAdv] : []), v, o];
       const endQuestion = ma && Math.random() < 0.25;
-      const characters = joinChars(parts) + (endQuestion ? ma.characters + '？' : '。');
-      const pinyin = joinPinyin(parts) + (endQuestion ? ` ${ma.pinyin} ?` : ' .');
-      const english = joinEnglish(parts) + (endQuestion ? ' ?' : ' .');
+      const characters =
+        joinChars(parts) + (endQuestion ? ma.characters + "？" : "。");
+      const pinyin =
+        joinPinyin(parts) + (endQuestion ? ` ${ma.pinyin} ?` : " .");
+      const english = joinEnglish(parts) + (endQuestion ? " ?" : " .");
       return { characters, pinyin, english };
     });
 
     // Template B: S 很 + ADJ
     templates.push(() => {
       const s = pick(subjects);
-      const h = advs.find(a => a.characters === '很');
+      const h = advs.find((a) => a.characters === "很");
       const adj = pick(adjectives);
       if (!s || !h || !adj) return undefined;
       const parts = [s, h, adj];
       return {
-        characters: joinChars(parts) + '。',
-        pinyin: joinPinyin(parts) + ' .',
-        english: joinEnglish(parts) + ' .'
+        characters: joinChars(parts) + "。",
+        pinyin: joinPinyin(parts) + " .",
+        english: joinEnglish(parts) + " .",
       };
     });
 
@@ -114,15 +191,15 @@ const buildSentenceCards = (
       if (!s || !place || !vo || !zai) return undefined;
       const parts = [...(t ? [t] : []), s, zai, place, vo];
       return {
-        characters: joinChars(parts) + '。',
-        pinyin: joinPinyin(parts) + ' .',
-        english: joinEnglish(parts) + ' .'
+        characters: joinChars(parts) + "。",
+        pinyin: joinPinyin(parts) + " .",
+        english: joinEnglish(parts) + " .",
       };
     });
 
     const make = pick(templates)?.();
     if (make) {
-      if (!cards.some(c => c.characters === make.characters)) {
+      if (!cards.some((c) => c.characters === make.characters)) {
         cards.push(make);
       }
     }
@@ -137,24 +214,24 @@ const ChineseLearningApp = () => {
   const [selectedLevel, setSelectedLevel] = useState<string>(ALL_OPTION);
   const [selectedBook, setSelectedBook] = useState<string>(ALL_OPTION);
   const [selectedLesson, setSelectedLesson] = useState<string>(ALL_OPTION);
-  const [studyMode, setStudyMode] = useState<'sequential' | 'random'>('sequential');
-  const [cardType, setCardType] = useState<'word' | 'sentence'>('word');
+  const [studyMode, setStudyMode] = useState<"sequential" | "random">(
+    "sequential"
+  );
+  const [cardType, setCardType] = useState<"word" | "sentence">("word");
   const [cardOrder, setCardOrder] = useState<number[]>([]);
-  const [studyStats, setStudyStats] = useState<StudyStats>({ correct: 0, total: 0 });
-  // Voice answer state (browser-only, no new packages)
-  const recognitionRef = useRef<any>(null);
-  const [listening, setListening] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const [voiceResult, setVoiceResult] = useState<'correct' | 'incorrect' | null>(null);
+  const [studyStats, setStudyStats] = useState<StudyStats>({
+    correct: 0,
+    total: 0,
+  });
 
   // Persist Kid Mode; default ON for first-time visitors
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('kidMode');
+      const saved = localStorage.getItem("kidMode");
       if (saved === null) {
         setKidMode(true);
       } else {
-        setKidMode(saved === 'true');
+        setKidMode(saved === "true");
       }
     } catch {
       setKidMode(true);
@@ -163,14 +240,14 @@ const ChineseLearningApp = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('kidMode', String(kidMode));
+      localStorage.setItem("kidMode", String(kidMode));
     } catch {
       // ignore
     }
   }, [kidMode]);
 
   const levelOptions = useMemo(
-    () => getUniqueSortedValues(VOCABULARY.map(word => word.level)),
+    () => getUniqueSortedValues(VOCABULARY.map((word) => word.level)),
     []
   );
 
@@ -180,19 +257,21 @@ const ChineseLearningApp = () => {
     }
 
     return getUniqueSortedValues(
-      VOCABULARY.filter(word => word.level === selectedLevel).map(word => word.book)
+      VOCABULARY.filter((word) => word.level === selectedLevel).map(
+        (word) => word.book
+      )
     );
   }, [selectedLevel]);
 
-const lessonOptions = useMemo(() => {
+  const lessonOptions = useMemo(() => {
     if (selectedLevel === ALL_OPTION || selectedBook === ALL_OPTION) {
       return [] as string[];
     }
 
     const lessonsByLevelAndBook = getUniqueSortedValues(
       VOCABULARY.filter(
-        word => word.level === selectedLevel && word.book === selectedBook
-      ).map(word => word.lesson)
+        (word) => word.level === selectedLevel && word.book === selectedBook
+      ).map((word) => word.lesson)
     );
 
     if (lessonsByLevelAndBook.length > 0) {
@@ -200,12 +279,14 @@ const lessonOptions = useMemo(() => {
     }
 
     return getUniqueSortedValues(
-      VOCABULARY.filter(word => word.level === selectedLevel).map(word => word.lesson)
+      VOCABULARY.filter((word) => word.level === selectedLevel).map(
+        (word) => word.lesson
+      )
     );
   }, [selectedLevel, selectedBook]);
 
   const filteredVocabulary = useMemo(() => {
-    return VOCABULARY.filter(word => {
+    return VOCABULARY.filter((word) => {
       if (selectedLevel !== ALL_OPTION && word.level !== selectedLevel) {
         return false;
       }
@@ -220,24 +301,33 @@ const lessonOptions = useMemo(() => {
   }, [selectedLevel, selectedBook, selectedLesson]);
 
   const availableUpToLesson = useMemo(() => {
-    const base = VOCABULARY.filter(word => {
-      if (selectedLevel !== ALL_OPTION && word.level !== selectedLevel) return false;
-      if (selectedBook !== ALL_OPTION && word.book !== selectedBook) return false;
+    const base = VOCABULARY.filter((word) => {
+      if (selectedLevel !== ALL_OPTION && word.level !== selectedLevel)
+        return false;
+      if (selectedBook !== ALL_OPTION && word.book !== selectedBook)
+        return false;
       return true;
     });
     if (selectedLesson === ALL_OPTION) return base;
     const cutoff = lessonRank(selectedLesson);
-    return base.filter(w => lessonRank(w.lesson) <= cutoff);
+    return base.filter((w) => lessonRank(w.lesson) <= cutoff);
   }, [selectedLevel, selectedBook, selectedLesson]);
 
   const sentenceCards = useMemo(() => {
-    const desired = Math.min(48, Math.max(12, Math.floor(availableUpToLesson.length * 0.6)));
+    const desired = Math.min(
+      48,
+      Math.max(12, Math.floor(availableUpToLesson.length * 0.6))
+    );
     return buildSentenceCards(availableUpToLesson, desired);
   }, [availableUpToLesson]);
 
   const activeCards = useMemo(() => {
-    return cardType === 'word'
-      ? filteredVocabulary.map(w => ({ characters: w.characters, pinyin: w.pinyin, english: w.english }))
+    return cardType === "word"
+      ? filteredVocabulary.map((w) => ({
+          characters: w.characters,
+          pinyin: w.pinyin,
+          english: w.english,
+        }))
       : sentenceCards;
   }, [cardType, filteredVocabulary, sentenceCards]);
 
@@ -252,7 +342,7 @@ const lessonOptions = useMemo(() => {
 
   const filterSummary = useMemo(() => {
     if (selectedLevel === ALL_OPTION) {
-      return 'All Levels 所有程度';
+      return "All Levels 所有程度";
     }
 
     const parts = [`Level ${selectedLevel} 程度`];
@@ -260,22 +350,28 @@ const lessonOptions = useMemo(() => {
     if (selectedBook !== ALL_OPTION) {
       parts.push(`Book ${selectedBook} 冊`);
     } else if (bookOptions.length > 0) {
-      parts.push('All Books 所有冊別');
+      parts.push("All Books 所有冊別");
     }
 
     if (selectedLesson !== ALL_OPTION) {
       parts.push(formatLessonLabel(selectedLesson));
     } else if (lessonOptions.length > 0) {
-      parts.push('All Lessons 所有課程');
+      parts.push("All Lessons 所有課程");
     }
 
-    return parts.join(' • ');
-  }, [selectedLevel, selectedBook, selectedLesson, bookOptions.length, lessonOptions.length]);
+    return parts.join(" • ");
+  }, [
+    selectedLevel,
+    selectedBook,
+    selectedLesson,
+    bookOptions.length,
+    lessonOptions.length,
+  ]);
 
   // Initialize card order when active cards change
   useEffect(() => {
     const indices = activeCards.map((_, index) => index);
-    if (studyMode === 'random') {
+    if (studyMode === "random") {
       setCardOrder(indices.sort(() => Math.random() - 0.5));
     } else {
       setCardOrder(indices);
@@ -283,11 +379,6 @@ const lessonOptions = useMemo(() => {
     setCurrentCardIndex(0);
     setShowAnswer(false);
   }, [activeCards, studyMode]);
-
-  useEffect(() => {
-    setVoiceResult(null);
-    setTranscript('');
-  }, [currentCardIndex]);
 
   const hasCards = activeCards.length > 0 && cardOrder.length > 0;
   const currentWordIndex = hasCards ? cardOrder[currentCardIndex] : 0;
@@ -306,13 +397,14 @@ const lessonOptions = useMemo(() => {
     if (!hasCards) {
       return;
     }
-    const prevIndex = (currentCardIndex - 1 + cardOrder.length) % cardOrder.length;
+    const prevIndex =
+      (currentCardIndex - 1 + cardOrder.length) % cardOrder.length;
     setCurrentCardIndex(prevIndex);
     setShowAnswer(false);
   };
 
   const resetCards = () => {
-    const confirmed = window.confirm('Reset your progress? 確認重設進度？');
+    const confirmed = window.confirm("Reset your progress? 確認重設進度？");
     if (!confirmed) {
       return;
     }
@@ -335,110 +427,11 @@ const lessonOptions = useMemo(() => {
     if (!hasCards) {
       return;
     }
-    setStudyStats(prev => ({
+    setStudyStats((prev) => ({
       correct: prev.correct + (isCorrect ? 1 : 0),
-      total: prev.total + 1
+      total: prev.total + 1,
     }));
     setTimeout(nextCard, 500);
-  };
-
-  // --- Voice Recognition and Fuzzy Matching (browser-only) ---
-  const supportsSpeechRecognition = typeof window !== 'undefined' &&
-    (Boolean((window as any).SpeechRecognition) || Boolean((window as any).webkitSpeechRecognition));
-
-  const startListening = () => {
-    if (!supportsSpeechRecognition || listening) return;
-    try {
-      const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      const recognition = new SR();
-      recognition.lang = 'zh-TW';
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
-      recognition.continuous = false;
-      recognition.onresult = (e: any) => {
-        let text = '';
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          const res = e.results[i];
-          if (res && res[0] && typeof res[0].transcript === 'string') {
-            text += res[0].transcript;
-          }
-        }
-        setTranscript(text.trim());
-      };
-      recognition.onerror = () => {
-        setListening(false);
-        recognitionRef.current = null;
-      };
-      recognition.onend = () => {
-        setListening(false);
-        recognitionRef.current = null;
-        // Auto-check when user stops speaking
-        if (transcript) {
-          checkVoiceAnswer();
-        }
-      };
-      setTranscript('');
-      setVoiceResult(null);
-      setListening(true);
-      recognitionRef.current = recognition;
-      recognition.start();
-    } catch {
-      setListening(false);
-      recognitionRef.current = null;
-    }
-  };
-
-  const stopListening = () => {
-    try {
-      recognitionRef.current?.stop?.();
-    } finally {
-      setListening(false);
-      recognitionRef.current = null;
-    }
-  };
-
-  const normalizeChinese = (s: string) =>
-    s
-      .toLowerCase()
-      .replace(/[\s,.;:!?！？。．，、·'"“”‘’\-—()（）【】\[\]…]/g, '')
-      .trim();
-
-  const levenshteinDistance = (a: string, b: string) => {
-    if (a === b) return 0;
-    const n = a.length;
-    const m = b.length;
-    if (n === 0) return m;
-    if (m === 0) return n;
-    const dp = new Array(m + 1);
-    for (let j = 0; j <= m; j++) dp[j] = j;
-    for (let i = 1; i <= n; i++) {
-      let prev = dp[0];
-      dp[0] = i;
-      for (let j = 1; j <= m; j++) {
-        const temp = dp[j];
-        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-        dp[j] = Math.min(dp[j] + 1, dp[j - 1] + 1, prev + cost);
-        prev = temp;
-      }
-    }
-    return dp[m];
-  };
-
-  const similarity = (a: string, b: string) => {
-    const maxLen = Math.max(a.length, b.length) || 1;
-    const d = levenshteinDistance(a, b);
-    return 1 - d / maxLen;
-  };
-
-  const checkVoiceAnswer = () => {
-    if (!currentItem || !transcript) return;
-    const hyp = normalizeChinese(transcript);
-    const gold = normalizeChinese(currentItem.characters);
-    const score = similarity(hyp, gold);
-    const threshold = cardType === 'sentence' ? 0.7 : 0.8;
-    const ok = score >= threshold;
-    setVoiceResult(ok ? 'correct' : 'incorrect');
-    markAnswer(ok);
   };
 
   const generateWorksheet = () => {
@@ -593,13 +586,23 @@ const lessonOptions = useMemo(() => {
       <body>
         <div class="header">
           <h1>傳統中文書法練習<br>Traditional Chinese Writing Practice</h1>
-          <p><strong>課程 Lesson:</strong> ${selectedLesson === 'all' ? 'All Lessons 所有課程' : `Lesson ${selectedLesson} 第${selectedLesson.slice(1)}課`}</p>
+          <p><strong>課程 Lesson:</strong> ${
+            selectedLesson === "all"
+              ? "All Lessons 所有課程"
+              : `Lesson ${selectedLesson} 第${selectedLesson.slice(1)}課`
+          }</p>
           <p><strong>練習說明 Instructions:</strong> Trace the red example character in the first box, then practice writing it in the remaining boxes</p>
           <p><strong>日期 Date:</strong> _________________ <strong>姓名 Name:</strong> _________________</p>
         </div>
 
-        ${filteredVocabulary.map((word, wordIndex) => `
-          ${wordIndex > 0 && wordIndex % 3 === 0 ? '<div class="page-break"></div>' : ''}
+        ${filteredVocabulary
+          .map(
+            (word, wordIndex) => `
+          ${
+            wordIndex > 0 && wordIndex % 3 === 0
+              ? '<div class="page-break"></div>'
+              : ""
+          }
           <div class="word-section">
             <div class="word-info">
               <div class="characters">${word.characters}</div>
@@ -610,19 +613,31 @@ const lessonOptions = useMemo(() => {
               </div>
             </div>
 
-            ${word.characters.split('').map((char, charIndex) => `
+            ${word.characters
+              .split("")
+              .map(
+                (char, charIndex) => `
               <div class="grid-container">
-                <div class="char-label">Character ${charIndex + 1}: ${char}</div>
+                <div class="char-label">Character ${
+                  charIndex + 1
+                }: ${char}</div>
                 <div class="practice-grid">
                   <div class="grid-cell">
                     <span class="example">${char}</span>
                   </div>
-                  ${Array.from({length: 9}, () => '<div class="grid-cell"></div>').join('')}
+                  ${Array.from(
+                    { length: 9 },
+                    () => '<div class="grid-cell"></div>'
+                  ).join("")}
                 </div>
               </div>
-            `).join('')}
+            `
+              )
+              .join("")}
           </div>
-        `).join('')}
+        `
+          )
+          .join("")}
 
         <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
           <p>Generated by Traditional Chinese Learning App • 傳統中文學習應用程式</p>
@@ -633,7 +648,7 @@ const lessonOptions = useMemo(() => {
     `;
 
     // Create a new window/tab with the worksheet
-    const newWindow = window.open('', '_blank');
+    const newWindow = window.open("", "_blank");
     if (newWindow) {
       newWindow.document.open();
       newWindow.document.write(printContent);
@@ -647,7 +662,7 @@ const lessonOptions = useMemo(() => {
         }
       }, 1000);
     } else {
-      alert('Please allow pop-ups to generate the worksheet. Then try again.');
+      alert("Please allow pop-ups to generate the worksheet. Then try again.");
     }
   };
 
@@ -655,11 +670,13 @@ const lessonOptions = useMemo(() => {
     if (!currentItem) return;
     try {
       const utterance = new SpeechSynthesisUtterance(currentItem.characters);
-      utterance.lang = 'zh-TW';
+      utterance.lang = "zh-TW";
       utterance.rate = 0.75; // 15% slower for elementary learners
       // Prefer zh-TW voice if available
       const voices = window.speechSynthesis?.getVoices?.() || [];
-      const zhVoice = voices.find(v => v.lang?.toLowerCase?.().startsWith('zh'));
+      const zhVoice = voices.find((v) =>
+        v.lang?.toLowerCase?.().startsWith("zh")
+      );
       if (zhVoice) {
         utterance.voice = zhVoice;
       }
@@ -677,7 +694,9 @@ const lessonOptions = useMemo(() => {
           <h1 className="text-5xl font-bold text-red-800 mb-3 tracking-wide">
             傳統中文學習 Traditional Chinese Learning
           </h1>
-          <p className="text-red-600 text-lg">索引：生詞／短語 - Index: Vocabulary Words / Phrases</p>
+          <p className="text-red-600 text-lg">
+            索引：生詞／短語 - Index: Vocabulary Words / Phrases
+          </p>
 
           {/* Kid Mode toggle */}
           <div className="mt-4 flex justify-center">
@@ -685,165 +704,193 @@ const lessonOptions = useMemo(() => {
               type="button"
               data-testid="kid-mode-toggle"
               aria-pressed={kidMode}
-              onClick={() => setKidMode(prev => !prev)}
+              onClick={() => setKidMode((prev) => !prev)}
               className={`px-5 py-2 rounded-full text-sm font-semibold shadow transition-colors ${
-                kidMode ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                kidMode
+                  ? "bg-red-600 text-white"
+                  : "bg-gray-100 text-gray-800 hover:bg-gray-200"
               }`}
             >
-              Kid Mode {kidMode ? 'ON' : 'OFF'}
+              Kid Mode {kidMode ? "ON" : "OFF"}
             </button>
           </div>
         </div>
 
         {/* Controls Panel */}
         {!kidMode && (
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8" data-testid="filter-panel">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-            {/* Level Filter */}
-            <div className="space-y-2">
-              <label htmlFor="level-filter" className="block text-sm font-medium text-gray-700">Select Level:</label>
-              <select
-                id="level-filter"
-                value={selectedLevel}
-                onChange={(e) => setSelectedLevel(e.target.value)}
-                className="w-full px-3 py-2 border border-red-300 rounded-lg bg-white text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
-              >
-                <option value={ALL_OPTION}>All Levels 所有程度</option>
-                {levelOptions.map(level => (
-                  <option key={level} value={level}>
-                    Level {level}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div
+            className="bg-white rounded-xl shadow-lg p-6 mb-8"
+            data-testid="filter-panel"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+              {/* Level Filter */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="level-filter"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Select Level:
+                </label>
+                <select
+                  id="level-filter"
+                  value={selectedLevel}
+                  onChange={(e) => setSelectedLevel(e.target.value)}
+                  className="w-full px-3 py-2 border border-red-300 rounded-lg bg-white text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                  <option value={ALL_OPTION}>All Levels 所有程度</option>
+                  {levelOptions.map((level) => (
+                    <option key={level} value={level}>
+                      Level {level}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            {/* Book Filter */}
-            <div className="space-y-2">
-              <label htmlFor="book-filter" className="block text-sm font-medium text-gray-700">Select Book:</label>
-              <select
-                id="book-filter"
-                value={selectedBook}
-                onChange={(e) => setSelectedBook(e.target.value)}
-                disabled={selectedLevel === ALL_OPTION}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
-                  selectedLevel === ALL_OPTION
-                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                    : 'bg-white text-red-800 border-red-300'
-                }`}
-              >
-                <option value={ALL_OPTION}>All Books 所有冊別</option>
-                {bookOptions.map(book => (
-                  <option key={book} value={book}>
-                    Book {book}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Lesson Filter */}
-            <div className="space-y-2">
-              <label htmlFor="lesson-filter" className="block text-sm font-medium text-gray-700">Select Lesson:</label>
-              <select
-                id="lesson-filter"
-                value={selectedLesson}
-                onChange={(e) => setSelectedLesson(e.target.value)}
-                disabled={selectedLevel === ALL_OPTION || selectedBook === ALL_OPTION}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
-                  selectedLevel === ALL_OPTION || selectedBook === ALL_OPTION
-                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                    : 'bg-white text-red-800 border-red-300'
-                }`}
-              >
-                <option value={ALL_OPTION}>All Lessons 所有課程</option>
-                {lessonOptions.map(lesson => (
-                  <option key={lesson} value={lesson}>
-                    {formatLessonLabel(lesson)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Study Mode */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Study Mode:</label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setStudyMode('sequential')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    studyMode === 'sequential'
-                      ? 'bg-red-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              {/* Book Filter */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="book-filter"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Select Book:
+                </label>
+                <select
+                  id="book-filter"
+                  value={selectedBook}
+                  onChange={(e) => setSelectedBook(e.target.value)}
+                  disabled={selectedLevel === ALL_OPTION}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                    selectedLevel === ALL_OPTION
+                      ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                      : "bg-white text-red-800 border-red-300"
                   }`}
                 >
-                  Sequential
-                </button>
-                <button
-                  onClick={() => setStudyMode('random')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    studyMode === 'random'
-                      ? 'bg-red-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  <option value={ALL_OPTION}>All Books 所有冊別</option>
+                  {bookOptions.map((book) => (
+                    <option key={book} value={book}>
+                      Book {book}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Lesson Filter */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="lesson-filter"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Select Lesson:
+                </label>
+                <select
+                  id="lesson-filter"
+                  value={selectedLesson}
+                  onChange={(e) => setSelectedLesson(e.target.value)}
+                  disabled={
+                    selectedLevel === ALL_OPTION || selectedBook === ALL_OPTION
+                  }
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                    selectedLevel === ALL_OPTION || selectedBook === ALL_OPTION
+                      ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                      : "bg-white text-red-800 border-red-300"
                   }`}
                 >
-                  Random
-                </button>
+                  <option value={ALL_OPTION}>All Lessons 所有課程</option>
+                  {lessonOptions.map((lesson) => (
+                    <option key={lesson} value={lesson}>
+                      {formatLessonLabel(lesson)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Study Mode */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Study Mode:
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setStudyMode("sequential")}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
+                      studyMode === "sequential"
+                        ? "bg-red-600 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    Sequential
+                  </button>
+                  <button
+                    onClick={() => setStudyMode("random")}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
+                      studyMode === "random"
+                        ? "bg-red-600 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    Random
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Card Type */}
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-            <div className="space-y-2 md:col-start-4">
-              <label className="block text-sm font-medium text-gray-700">Card Type:</label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCardType('word')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    cardType === 'word'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Vocabulary
-                </button>
-                <button
-                  onClick={() => setCardType('sentence')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    cardType === 'sentence'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  Sentences
-                </button>
+            {/* Card Type */}
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+              <div className="space-y-2 md:col-start-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Card Type:
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCardType("word")}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
+                      cardType === "word"
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    Vocabulary
+                  </button>
+                  <button
+                    onClick={() => setCardType("sentence")}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
+                      cardType === "sentence"
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    Sentences
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-            <div
-              className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 px-3 py-2 rounded-lg"
-              data-testid="filter-summary"
-            >
-              <span className="font-semibold">Current Filter:</span>
-              <span>{filterSummary}</span>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+              <div
+                className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 px-3 py-2 rounded-lg"
+                data-testid="filter-summary"
+              >
+                <span className="font-semibold">Current Filter:</span>
+                <span>{filterSummary}</span>
+              </div>
+              <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 px-3 py-2 rounded-lg justify-between">
+                <span className="font-semibold">Matching Words:</span>
+                <span data-testid="filter-count" className="text-lg font-bold">
+                  {filteredVocabulary.length}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 px-3 py-2 rounded-lg justify-between">
-              <span className="font-semibold">Matching Words:</span>
-              <span data-testid="filter-count" className="text-lg font-bold">{filteredVocabulary.length}</span>
-            </div>
-          </div>
 
-          <div className="mt-4">
-            <button
-              onClick={generateWorksheet}
-              className="w-full md:w-auto bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-md"
-            >
-              <Printer size={18} />
-              Print Worksheet
-            </button>
+            <div className="mt-4">
+              <button
+                onClick={generateWorksheet}
+                className="w-full md:w-auto bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-md"
+              >
+                <Printer size={18} />
+                Print Worksheet
+              </button>
+            </div>
           </div>
-        </div>
         )}
 
         {/* Study Stats */}
@@ -852,7 +899,11 @@ const lessonOptions = useMemo(() => {
             <div className="text-lg font-semibold text-gray-700">
               Study Progress: {studyStats.correct}/{studyStats.total} correct
               <span className="text-green-600 ml-2">
-                ({studyStats.total > 0 ? Math.round((studyStats.correct / studyStats.total) * 100) : 0}%)
+                (
+                {studyStats.total > 0
+                  ? Math.round((studyStats.correct / studyStats.total) * 100)
+                  : 0}
+                %)
               </span>
             </div>
           </div>
@@ -860,11 +911,18 @@ const lessonOptions = useMemo(() => {
 
         {/* Kid Mode Study Stats */}
         {kidMode && studyStats.total > 0 && (
-          <div className="bg-white rounded-lg p-4 mb-8 shadow-lg text-center max-w-4xl mx-auto" data-testid="kid-mode-study-stats">
+          <div
+            className="bg-white rounded-lg p-4 mb-8 shadow-lg text-center max-w-4xl mx-auto"
+            data-testid="kid-mode-study-stats"
+          >
             <div className="text-lg font-semibold text-gray-700">
               Study Progress: {studyStats.correct}/{studyStats.total} correct
               <span className="text-green-600 ml-2">
-                ({studyStats.total > 0 ? Math.round((studyStats.correct / studyStats.total) * 100) : 0}%)
+                (
+                {studyStats.total > 0
+                  ? Math.round((studyStats.correct / studyStats.total) * 100)
+                  : 0}
+                %)
               </span>
             </div>
           </div>
@@ -881,13 +939,18 @@ const lessonOptions = useMemo(() => {
                 {/* Progress */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <span className="text-sm text-gray-600 text-center sm:text-left">
-                    Card {currentCardIndex + 1} of {activeCards.length} • {studyMode === 'random' ? 'Random 隨機' : 'Sequential 順序'}
+                    Card {currentCardIndex + 1} of {activeCards.length} •{" "}
+                    {studyMode === "random" ? "Random 隨機" : "Sequential 順序"}
                   </span>
                   <div className="w-full sm:w-64">
                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                       <div
                         className="h-2 bg-gradient-to-r from-red-600 to-orange-500 rounded-full transition-all duration-500"
-                        style={{ width: `${((currentCardIndex + 1) / activeCards.length) * 100}%` }}
+                        style={{
+                          width: `${
+                            ((currentCardIndex + 1) / activeCards.length) * 100
+                          }%`,
+                        }}
                       ></div>
                     </div>
                   </div>
@@ -895,7 +958,10 @@ const lessonOptions = useMemo(() => {
 
                 {/* Answer Buttons (when answer is shown, within flashcard container) */}
                 {showAnswer && (
-                  <div className="bg-white rounded-xl shadow-lg p-6" data-testid="answer-buttons-container">
+                  <div
+                    className="bg-white rounded-xl shadow-lg p-6"
+                    data-testid="answer-buttons-container"
+                  >
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={() => markAnswer(false)}
@@ -926,16 +992,24 @@ const lessonOptions = useMemo(() => {
                 >
                   {!showAnswer ? (
                     <div className="space-y-6 sm:space-y-8">
-                      <div className="text-7xl sm:text-8xl font-bold text-red-800 tracking-wide" data-testid="flashcard-character">
+                      <div
+                        className="text-7xl sm:text-8xl font-bold text-red-800 tracking-wide"
+                        data-testid="flashcard-character"
+                      >
                         {currentItem.characters}
                       </div>
                       <p className="text-gray-500 text-base sm:text-lg flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 animate-pulse">
-                        <span>Click to reveal pinyin & meaning • 點擊顯示拼音和含義</span>
+                        <span>
+                          Click to reveal pinyin & meaning • 點擊顯示拼音和含義
+                        </span>
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-5 sm:space-y-6">
-                      <div className="text-7xl sm:text-8xl font-bold text-red-800 tracking-wide" data-testid="flashcard-character">
+                      <div
+                        className="text-7xl sm:text-8xl font-bold text-red-800 tracking-wide"
+                        data-testid="flashcard-character"
+                      >
                         {currentItem.characters}
                       </div>
                       <div className="text-2xl sm:text-3xl text-red-600 font-medium tracking-wider">
@@ -993,109 +1067,111 @@ const lessonOptions = useMemo(() => {
               </div>
 
               {!kidMode && (
-              <div className="flex flex-col justify-between lg:w-64 space-y-4">
-                <div className="bg-red-50 border border-red-100 rounded-2xl p-4 space-y-3 shadow-inner">
-                  <h4 className="text-sm font-semibold text-red-700 text-center">Quick Actions</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={prevCard}
-                      className="flex flex-col items-center justify-center bg-white text-red-600 border border-red-200 rounded-xl py-3 px-2 hover:bg-red-100 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                      disabled={activeCards.length <= 1}
-                      aria-label="Previous card"
-                    >
-                      <ChevronLeft size={20} />
-                      <span className="mt-1 text-xs font-medium">Prev</span>
-                    </button>
-                    <button
-                      onClick={nextCard}
-                      className="flex flex-col items-center justify-center bg-white text-red-600 border border-red-200 rounded-xl py-3 px-2 hover:bg-red-100 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                      disabled={activeCards.length <= 1}
-                      aria-label="Next card"
-                    >
-                      <ChevronRight size={20} />
-                      <span className="mt-1 text-xs font-medium">Next</span>
-                    </button>
-                    <button
-                      onClick={shuffleCards}
-                      className="flex flex-col items-center justify-center bg-white text-purple-600 border border-purple-200 rounded-xl py-3 px-2 hover:bg-purple-50 transition-colors shadow-sm"
-                      aria-label="Shuffle cards"
-                    >
-                      <Shuffle size={18} />
-                      <span className="mt-1 text-xs font-medium">Shuffle</span>
-                    </button>
-                    <button
-                      onClick={resetCards}
-                      className="flex flex-col items-center justify-center bg-white text-gray-700 border border-gray-200 rounded-xl py-3 px-2 hover:bg-gray-100 transition-colors shadow-sm"
-                      aria-label="Reset progress"
-                      data-testid="quick-actions-reset"
-                    >
-                      <RotateCcw size={18} />
-                      <span className="mt-1 text-xs font-medium">Reset</span>
-                    </button>
-                    {supportsSpeechRecognition && (
-                      <>
-                        <button
-                          onClick={listening ? stopListening : startListening}
-                          className={`flex flex-col items-center justify-center rounded-xl py-3 px-2 transition-colors shadow-sm ${
-                            listening
-                              ? 'bg-red-600 text-white hover:bg-red-700'
-                              : 'bg-white text-green-700 border border-green-200 hover:bg-green-50'
-                          }`}
-                          aria-label={listening ? 'Stop Check Voice' : 'Check Voice'}
-                          data-testid="voice-check-toggle"
-                        >
-                          {listening ? <Square size={18} /> : <Check size={18} />}
-                          <span className="mt-1 text-xs font-medium">{listening ? 'Stop' : 'Check Voice'}</span>
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 space-y-3 shadow-inner">
-                  <h4 className="text-sm font-semibold text-orange-700 text-center">Card Details</h4>
-                  {cardType === 'word' && filteredVocabulary[cardOrder[currentCardIndex]] && (
-                    <div className="text-sm text-gray-700 space-y-2">
-                      <div className="flex justify-between">
-                        <span className="font-medium">Lesson</span>
-                        <span className="text-red-600">{formatLessonLabel((filteredVocabulary[cardOrder[currentCardIndex]] as any)?.lesson)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium">Book</span>
-                        <span>{(filteredVocabulary[cardOrder[currentCardIndex]] as any)?.book}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium">Level</span>
-                        <span>{(filteredVocabulary[cardOrder[currentCardIndex]] as any)?.level}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium">Characters</span>
-                        <span>{(filteredVocabulary[cardOrder[currentCardIndex]] as any)?.characters.length}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                {supportsSpeechRecognition && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-2 shadow-inner">
-                    <h4 className="text-sm font-semibold text-blue-700 text-center">Voice Answer (beta)</h4>
-                    <div className="text-xs text-gray-700 break-words min-h-[1.5rem]" data-testid="voice-transcript">
-                      {transcript ? `“${transcript}”` : 'Press Speak and say the answer in Chinese'}
-                    </div>
-                    {voiceResult && (
-                      <div
-                        className={`text-sm font-semibold text-center rounded-md px-2 py-1 ${
-                          voiceResult === 'correct'
-                            ? 'bg-green-50 border border-green-200 text-green-700'
-                            : 'bg-red-50 border border-red-200 text-red-700'
-                        }`}
-                        data-testid="voice-result"
+                <div className="flex flex-col justify-between lg:w-64 space-y-4">
+                  <div className="bg-red-50 border border-red-100 rounded-2xl p-4 space-y-3 shadow-inner">
+                    <h4 className="text-sm font-semibold text-red-700 text-center">
+                      Quick Actions
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={prevCard}
+                        className="flex flex-col items-center justify-center bg-white text-red-600 border border-red-200 rounded-xl py-3 px-2 hover:bg-red-100 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                        disabled={activeCards.length <= 1}
+                        aria-label="Previous card"
                       >
-                        {voiceResult === 'correct' ? 'Matched' : 'Not Matched'}
-                      </div>
-                    )}
+                        <ChevronLeft size={20} />
+                        <span className="mt-1 text-xs font-medium">Prev</span>
+                      </button>
+                      <button
+                        onClick={nextCard}
+                        className="flex flex-col items-center justify-center bg-white text-red-600 border border-red-200 rounded-xl py-3 px-2 hover:bg-red-100 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                        disabled={activeCards.length <= 1}
+                        aria-label="Next card"
+                      >
+                        <ChevronRight size={20} />
+                        <span className="mt-1 text-xs font-medium">Next</span>
+                      </button>
+                      <button
+                        onClick={shuffleCards}
+                        className="flex flex-col items-center justify-center bg-white text-purple-600 border border-purple-200 rounded-xl py-3 px-2 hover:bg-purple-50 transition-colors shadow-sm"
+                        aria-label="Shuffle cards"
+                      >
+                        <Shuffle size={18} />
+                        <span className="mt-1 text-xs font-medium">
+                          Shuffle
+                        </span>
+                      </button>
+                      <button
+                        onClick={resetCards}
+                        className="flex flex-col items-center justify-center bg-white text-gray-700 border border-gray-200 rounded-xl py-3 px-2 hover:bg-gray-100 transition-colors shadow-sm"
+                        aria-label="Reset progress"
+                        data-testid="quick-actions-reset"
+                      >
+                        <RotateCcw size={18} />
+                        <span className="mt-1 text-xs font-medium">Reset</span>
+                      </button>
+                    </div>
                   </div>
-                )}
-              </div>
+
+                  <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 space-y-3 shadow-inner">
+                    <h4 className="text-sm font-semibold text-orange-700 text-center">
+                      Card Details
+                    </h4>
+                    {cardType === "word" &&
+                      filteredVocabulary[cardOrder[currentCardIndex]] && (
+                        <div className="text-sm text-gray-700 space-y-2">
+                          <div className="flex justify-between">
+                            <span className="font-medium">Lesson</span>
+                            <span className="text-red-600">
+                              {formatLessonLabel(
+                                (
+                                  filteredVocabulary[
+                                    cardOrder[currentCardIndex]
+                                  ] as any
+                                )?.lesson
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Book</span>
+                            <span>
+                              {
+                                (
+                                  filteredVocabulary[
+                                    cardOrder[currentCardIndex]
+                                  ] as any
+                                )?.book
+                              }
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Level</span>
+                            <span>
+                              {
+                                (
+                                  filteredVocabulary[
+                                    cardOrder[currentCardIndex]
+                                  ] as any
+                                )?.level
+                              }
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium">Characters</span>
+                            <span>
+                              {
+                                (
+                                  filteredVocabulary[
+                                    cardOrder[currentCardIndex]
+                                  ] as any
+                                )?.characters.length
+                              }
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                  </div>
+                </div>
               )}
             </div>
           </section>
@@ -1103,43 +1179,54 @@ const lessonOptions = useMemo(() => {
 
         {/* Vocabulary Overview Grid */}
         {!kidMode && (
-        <div className="bg-white rounded-xl shadow-lg p-6" data-testid="vocab-overview-section">
-          <h3 className="text-2xl font-bold text-red-800 mb-6 text-center">
-            詞彙總覽 Vocabulary Overview
-            <span className="text-lg text-gray-600 ml-3">
-              ({selectedLesson === 'all' ? 'All Lessons' : `Lesson ${selectedLesson}`})
-            </span>
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredVocabulary.map((word, index) => (
-              <div
-                key={index}
-                className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-105 ${
-                  cardOrder[currentCardIndex] === index
-                    ? 'bg-red-100 border-red-400 shadow-lg'
-                    : 'bg-gray-50 hover:bg-blue-50 border-gray-200 hover:border-blue-300 shadow-md'
-                }`}
-                onClick={() => {
-                  const newIndex = cardOrder.findIndex(i => i === index);
-                  if (newIndex === -1) {
-                    return;
-                  }
-                  setCurrentCardIndex(newIndex);
-                  setShowAnswer(false);
-                }}
-              >
-                <div className="text-center space-y-2">
-                  <div className="text-2xl font-bold text-red-800">{word.characters}</div>
-                  <div className="text-sm text-red-600 font-medium">{word.pinyin}</div>
-                  <div className="text-sm text-gray-700">{word.english}</div>
-                  <div className="inline-block bg-red-600 text-white text-xs px-2 py-1 rounded-full">
-                    {word.lesson}
+          <div
+            className="bg-white rounded-xl shadow-lg p-6"
+            data-testid="vocab-overview-section"
+          >
+            <h3 className="text-2xl font-bold text-red-800 mb-6 text-center">
+              詞彙總覽 Vocabulary Overview
+              <span className="text-lg text-gray-600 ml-3">
+                (
+                {selectedLesson === "all"
+                  ? "All Lessons"
+                  : `Lesson ${selectedLesson}`}
+                )
+              </span>
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredVocabulary.map((word, index) => (
+                <div
+                  key={index}
+                  className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-105 ${
+                    cardOrder[currentCardIndex] === index
+                      ? "bg-red-100 border-red-400 shadow-lg"
+                      : "bg-gray-50 hover:bg-blue-50 border-gray-200 hover:border-blue-300 shadow-md"
+                  }`}
+                  onClick={() => {
+                    const newIndex = cardOrder.findIndex((i) => i === index);
+                    if (newIndex === -1) {
+                      return;
+                    }
+                    setCurrentCardIndex(newIndex);
+                    setShowAnswer(false);
+                  }}
+                >
+                  <div className="text-center space-y-2">
+                    <div className="text-2xl font-bold text-red-800">
+                      {word.characters}
+                    </div>
+                    <div className="text-sm text-red-600 font-medium">
+                      {word.pinyin}
+                    </div>
+                    <div className="text-sm text-gray-700">{word.english}</div>
+                    <div className="inline-block bg-red-600 text-white text-xs px-2 py-1 rounded-full">
+                      {word.lesson}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
         )}
 
         {!hasCards && (
@@ -1150,33 +1237,39 @@ const lessonOptions = useMemo(() => {
 
         {/* Instructions */}
         {!kidMode && (
-        <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-red-800 mb-4 text-center">
-            使用說明 How to Use This App
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-bold text-red-700 mb-2">🎴 Flashcard Study:</h4>
-              <ul className="space-y-1 text-gray-700 text-sm">
-                <li>• Click cards to reveal/hide pinyin and English translations</li>
-                <li>• Use arrow buttons to navigate between cards</li>
-                <li>• Mark answers as correct/incorrect to track progress</li>
-                <li>• Choose sequential or random study modes</li>
-                <li>• Filter by specific lesson numbers</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-red-700 mb-2">📝 Writing Practice:</h4>
-              <ul className="space-y-1 text-gray-700 text-sm">
-                <li>• Generate printable worksheets with practice grids</li>
-                <li>• Each character gets individual practice boxes</li>
-                <li>• Traditional Chinese grid format with guidelines</li>
-                <li>• Includes pinyin and English for reference</li>
-                <li>• Perfect for handwriting practice</li>
-              </ul>
+          <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-xl font-bold text-red-800 mb-4 text-center">
+              使用說明 How to Use This App
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-bold text-red-700 mb-2">
+                  🎴 Flashcard Study:
+                </h4>
+                <ul className="space-y-1 text-gray-700 text-sm">
+                  <li>
+                    • Click cards to reveal/hide pinyin and English translations
+                  </li>
+                  <li>• Use arrow buttons to navigate between cards</li>
+                  <li>• Mark answers as correct/incorrect to track progress</li>
+                  <li>• Choose sequential or random study modes</li>
+                  <li>• Filter by specific lesson numbers</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-bold text-red-700 mb-2">
+                  📝 Writing Practice:
+                </h4>
+                <ul className="space-y-1 text-gray-700 text-sm">
+                  <li>• Generate printable worksheets with practice grids</li>
+                  <li>• Each character gets individual practice boxes</li>
+                  <li>• Traditional Chinese grid format with guidelines</li>
+                  <li>• Includes pinyin and English for reference</li>
+                  <li>• Perfect for handwriting practice</li>
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
         )}
       </div>
     </div>
