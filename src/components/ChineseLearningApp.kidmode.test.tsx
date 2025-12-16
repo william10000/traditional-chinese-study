@@ -174,5 +174,3 @@ describe('Kid Mode enhancements', () => {
     expect(setItem).toHaveBeenCalledWith('kidMode', 'true');
   });
 });
-
-
