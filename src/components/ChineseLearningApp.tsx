@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -37,8 +37,6 @@ const formatLessonLabel = (lesson: string) => {
 
   return normalized;
 };
-
-/* Moved to ../data/vocabulary */
 
 const lessonRank = (lesson: string) => {
   const l = lesson.trim();
@@ -381,19 +379,20 @@ const ChineseLearningApp = () => {
   }, [activeCards, studyMode]);
 
   const hasCards = activeCards.length > 0 && cardOrder.length > 0;
+
   const currentWordIndex = hasCards ? cardOrder[currentCardIndex] : 0;
   const currentItem = hasCards ? activeCards[currentWordIndex] : undefined;
 
-  const nextCard = () => {
+  const nextCard = useCallback(() => {
     if (!hasCards) {
       return;
     }
     const nextIndex = (currentCardIndex + 1) % cardOrder.length;
     setCurrentCardIndex(nextIndex);
     setShowAnswer(false);
-  };
+  }, [hasCards, currentCardIndex, cardOrder.length]);
 
-  const prevCard = () => {
+  const prevCard = useCallback(() => {
     if (!hasCards) {
       return;
     }
@@ -401,7 +400,7 @@ const ChineseLearningApp = () => {
       (currentCardIndex - 1 + cardOrder.length) % cardOrder.length;
     setCurrentCardIndex(prevIndex);
     setShowAnswer(false);
-  };
+  }, [hasCards, currentCardIndex, cardOrder.length]);
 
   const resetCards = () => {
     const confirmed = window.confirm("Reset your progress? 確認重設進度？");
@@ -423,16 +422,74 @@ const ChineseLearningApp = () => {
     setShowAnswer(false);
   };
 
-  const markAnswer = (isCorrect: boolean) => {
-    if (!hasCards) {
-      return;
-    }
-    setStudyStats((prev) => ({
-      correct: prev.correct + (isCorrect ? 1 : 0),
-      total: prev.total + 1,
-    }));
-    setTimeout(nextCard, 500);
-  };
+  const markAnswer = useCallback(
+    (isCorrect: boolean) => {
+      if (!hasCards) {
+        return;
+      }
+      setStudyStats((prev) => ({
+        correct: prev.correct + (isCorrect ? 1 : 0),
+        total: prev.total + 1,
+      }));
+
+      setTimeout(() => {
+        setCurrentCardIndex((curr) => (curr + 1) % cardOrder.length);
+        setShowAnswer(false);
+      }, 500);
+    },
+    [hasCards, cardOrder.length]
+  );
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input (though we don't have inputs currently, good practice)
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      switch (e.key) {
+        case " ": // Spacebar
+        case "Enter":
+          e.preventDefault();
+          if (!showAnswer) {
+            setShowAnswer(true);
+          } else {
+            // If answer is shown, Enter could trigger "Got It" for fast flow
+            markAnswer(true);
+          }
+          break;
+        case "ArrowLeft":
+          prevCard();
+          break;
+        case "ArrowRight":
+          if (!showAnswer) {
+            nextCard(); // Skip if answer not shown
+          }
+          break;
+        case "1":
+          if (showAnswer) markAnswer(false);
+          break;
+        case "2":
+          if (showAnswer) markAnswer(true);
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    hasCards,
+    showAnswer,
+    currentCardIndex,
+    cardOrder,
+    markAnswer,
+    nextCard,
+    prevCard,
+  ]);
 
   const generateWorksheet = () => {
     const printContent = `
@@ -1027,10 +1084,7 @@ const ChineseLearningApp = () => {
 
                 {/* Kid Mode Primary Controls */}
                 {kidMode && (
-                  <div
-                    className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6"
-                    data-testid="kid-mode-primary-controls"
-                  >
+                  <div className="mt-6" data-testid="kid-mode-primary-controls">
                     <button
                       onClick={playAudio}
                       className="bg-blue-600 text-white px-5 py-3 rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
@@ -1040,28 +1094,6 @@ const ChineseLearningApp = () => {
                       <Volume2 size={20} />
                       Play Audio
                     </button>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        onClick={prevCard}
-                        className="bg-white text-red-600 border border-red-200 px-5 py-3 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2 shadow-sm w-full"
-                        aria-label="Back"
-                        data-testid="back-button"
-                        disabled={activeCards.length <= 1}
-                      >
-                        <ChevronLeft size={20} />
-                        Back
-                      </button>
-                      <button
-                        onClick={nextCard}
-                        className="bg-green-600 text-white px-5 py-3 rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
-                        aria-label="Next"
-                        data-testid="next-button"
-                        disabled={activeCards.length <= 1}
-                      >
-                        <ChevronRight size={20} />
-                        Next
-                      </button>
-                    </div>
                   </div>
                 )}
               </div>
@@ -1084,12 +1116,16 @@ const ChineseLearningApp = () => {
                       </button>
                       <button
                         onClick={nextCard}
-                        className="flex flex-col items-center justify-center bg-white text-red-600 border border-red-200 rounded-xl py-3 px-2 hover:bg-red-100 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                        disabled={activeCards.length <= 1}
+                        className={`flex flex-col items-center justify-center bg-white text-red-600 border border-red-200 rounded-xl py-3 px-2 hover:bg-red-100 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed ${
+                          showAnswer ? "opacity-30 cursor-not-allowed" : ""
+                        }`}
+                        disabled={activeCards.length <= 1 || showAnswer}
                         aria-label="Next card"
                       >
                         <ChevronRight size={20} />
-                        <span className="mt-1 text-xs font-medium">Next</span>
+                        <span className="mt-1 text-xs font-medium">
+                          {showAnswer ? "Rate!" : "Skip"}
+                        </span>
                       </button>
                       <button
                         onClick={shuffleCards}

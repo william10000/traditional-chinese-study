@@ -40,38 +40,6 @@ describe('Kid Mode enhancements', () => {
     expect(screen.getByRole('button', { name: /Got It!/i })).toBeInTheDocument();
   });
 
-  it('navigates back with Back button in Kid Mode', async () => {
-    mockLocalStorage(null);
-    render(<ChineseLearningApp />);
-
-    await waitFor(() => {
-      expect(getLatestByTestId('kid-mode-toggle')).toHaveAttribute('aria-pressed', 'true');
-    });
-
-    const getChar = () => screen.getAllByTestId('flashcard-character')[0].textContent;
-    const first = getChar();
-
-    // Go next
-    fireEvent.click(getLatestByTestId('next-button'));
-    await waitFor(() => {
-      expect(getChar()).not.toBe(first);
-    });
-
-    const afterNext = getChar();
-
-    // Go back
-    fireEvent.click(getLatestByTestId('back-button'));
-    await waitFor(() => {
-      expect(getChar()).toBe(first);
-    });
-
-    // sanity: next returns to afterNext
-    fireEvent.click(getLatestByTestId('next-button'));
-    await waitFor(() => {
-      expect(getChar()).toBe(afterNext);
-    });
-  });
-
   it('shows and updates study progress in Kid Mode after answering', async () => {
     mockLocalStorage(null);
     render(<ChineseLearningApp />);
