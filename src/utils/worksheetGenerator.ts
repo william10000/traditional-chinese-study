@@ -103,14 +103,19 @@ export const generateWorksheet = (
             padding: 20px;
             background: #fafafa;
             border-radius: 8px;
+            display: flex;
+            align-items: center;
           }
           .word-info {
-            margin-bottom: 20px;
-            text-align: center;
-            background: white;
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
+            width: 150px;
+            text-align: right;
+            padding-right: 20px;
+            flex-shrink: 0;
+            border-right: 1px solid #eee;
+            margin-right: 20px;
+          }
+          .practice-rows {
+            flex-grow: 1;
           }
           .characters {
             font-size: 32px;
@@ -119,13 +124,15 @@ export const generateWorksheet = (
             margin-bottom: 8px;
           }
           .details {
-            font-size: 16px;
+            font-size: 14px;
             margin: 5px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
           }
           .pinyin {
             color: #666;
             font-weight: 500;
-            margin-right: 15px;
           }
           .english {
             color: #333;
@@ -137,18 +144,23 @@ export const generateWorksheet = (
             padding: 4px 12px;
             border-radius: 15px;
             font-size: 12px;
-            margin-left: 15px;
             font-weight: bold;
+            display: inline-block;
+            margin-top: 8px;
+            align-self: flex-end;
           }
           .grid-container {
-            text-align: center;
-            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
           }
           .char-label {
-            font-size: 18px;
+            font-size: 16px;
             color: #666;
-            margin-bottom: 8px;
             font-weight: 500;
+            margin-right: 10px;
+            width: 100px;
+            text-align: right;
           }
         </style>
       </head>
@@ -182,27 +194,26 @@ export const generateWorksheet = (
               </div>
             </div>
 
-            ${word.characters
-              .split("")
-              .map(
-                (char, charIndex) => `
-              <div class="grid-container">
-                <div class="char-label">Character ${
-                  charIndex + 1
-                }: ${char}</div>
-                <div class="practice-grid">
-                  <div class="grid-cell">
-                    <span class="example">${char}</span>
+            <div class="practice-rows">
+              ${word.characters
+                .split("")
+                .map(
+                  (char) => `
+                <div class="grid-container">
+                  <div class="practice-grid">
+                    <div class="grid-cell">
+                      <span class="example">${char}</span>
+                    </div>
+                    ${Array.from(
+                      { length: 9 },
+                      () => '<div class="grid-cell"></div>'
+                    ).join("")}
                   </div>
-                  ${Array.from(
-                    { length: 9 },
-                    () => '<div class="grid-cell"></div>'
-                  ).join("")}
                 </div>
-              </div>
-            `
-              )
-              .join("")}
+              `
+                )
+                .join("")}
+            </div>
           </div>
         `
           )
