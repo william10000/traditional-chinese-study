@@ -24,7 +24,7 @@ The app includes comprehensive vocabulary from 12 lessons covering:
 
 ### Prerequisites
 
-- Node.js 18+ and npm (or yarn/pnpm)
+- Node.js 18+ and pnpm
 - Git
 
 ### Installation
