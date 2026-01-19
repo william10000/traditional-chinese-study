@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { VocabularyWord } from "../../types";
 
 interface VocabularyOverviewProps {
@@ -9,6 +10,17 @@ interface VocabularyOverviewProps {
   kidMode: boolean;
 }
 
+// Helper to extract lesson number for sorting (e.g., "L7" -> 7, "Test1" -> 100)
+const getLessonSortKey = (lesson: string): number => {
+  if (lesson.startsWith("L")) {
+    return parseInt(lesson.slice(1), 10) || 0;
+  }
+  if (lesson.startsWith("Test")) {
+    return 100 + (parseInt(lesson.slice(4), 10) || 0);
+  }
+  return 999;
+};
+
 export const VocabularyOverview = ({
   filteredVocabulary,
   selectedLesson,
@@ -17,48 +29,90 @@ export const VocabularyOverview = ({
   onCardSelect,
   kidMode,
 }: VocabularyOverviewProps) => {
+  // Create sorted vocabulary with original indices preserved
+  const sortedVocabulary = useMemo(() => {
+    return filteredVocabulary
+      .map((word, originalIndex) => ({ word, originalIndex }))
+      .sort((a, b) => {
+        // First sort by lesson
+        const lessonDiff =
+          getLessonSortKey(a.word.lesson) - getLessonSortKey(b.word.lesson);
+        if (lessonDiff !== 0) return lessonDiff;
+        // Then sort alphabetically by pinyin
+        return a.word.pinyin.localeCompare(b.word.pinyin);
+      });
+  }, [filteredVocabulary]);
+
   if (kidMode) return null;
 
   return (
     <div
-      className="bg-white rounded-xl shadow-lg p-6"
+      className="bg-white rounded-xl shadow-lg p-4 sm:p-6"
       data-testid="vocab-overview-section"
     >
-      <h3 className="text-2xl font-bold text-red-800 mb-6 text-center">
+      <h3 className="text-xl sm:text-2xl font-bold text-red-800 mb-4 text-center">
         詞彙總覽 Vocabulary Overview
-        <span className="text-lg text-gray-600 ml-3">
-          (
-          {selectedLesson === "all"
-            ? "All Lessons"
-            : `Lesson ${selectedLesson}`}
-          )
+        <span className="text-sm sm:text-lg text-gray-600 ml-2">
+          ({filteredVocabulary.length} words
+          {selectedLesson !== "all" && ` • Lesson ${selectedLesson}`})
         </span>
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filteredVocabulary.map((word, index) => (
-          <div
-            key={index}
-            className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-105 ${
-              cardOrder[currentCardIndex] === index
-                ? "bg-red-100 border-red-400 shadow-lg"
-                : "bg-gray-50 hover:bg-blue-50 border-gray-200 hover:border-blue-300 shadow-md"
-            }`}
-            onClick={() => onCardSelect(index)}
-          >
-            <div className="text-center space-y-2">
-              <div className="text-2xl font-bold text-red-800">
-                {word.characters}
-              </div>
-              <div className="text-sm text-red-600 font-medium">
-                {word.pinyin}
-              </div>
-              <div className="text-sm text-gray-700">{word.english}</div>
-              <div className="inline-block bg-red-600 text-white text-xs px-2 py-1 rounded-full">
-                {word.lesson}
-              </div>
-            </div>
-          </div>
-        ))}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b-2 border-red-200 text-left">
+              <th className="py-2 px-1 sm:px-2 text-red-800 font-semibold text-center w-8">
+                #
+              </th>
+              <th className="py-2 px-2 sm:px-3 text-red-800 font-semibold">
+                Lesson
+              </th>
+              <th className="py-2 px-2 sm:px-3 text-red-800 font-semibold">
+                漢字
+              </th>
+              <th className="py-2 px-2 sm:px-3 text-red-800 font-semibold">
+                Pinyin
+              </th>
+              <th className="py-2 px-2 sm:px-3 text-red-800 font-semibold hidden sm:table-cell">
+                English
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedVocabulary.map(({ word, originalIndex }, rowIndex) => {
+              const isCurrentCard = cardOrder[currentCardIndex] === originalIndex;
+              return (
+                <tr
+                  key={originalIndex}
+                  className={`border-b border-gray-100 cursor-pointer transition-colors ${
+                    isCurrentCard
+                      ? "bg-red-100 font-medium"
+                      : "hover:bg-blue-50"
+                  }`}
+                  onClick={() => onCardSelect(originalIndex)}
+                >
+                  <td className="py-1.5 px-1 sm:px-2 text-gray-400 text-center text-xs">
+                    {rowIndex + 1}
+                  </td>
+                  <td className="py-1.5 px-2 sm:px-3">
+                    <span className="inline-block bg-red-600 text-white text-xs px-1.5 py-0.5 rounded">
+                      {word.lesson}
+                    </span>
+                  </td>
+                  <td className="py-1.5 px-2 sm:px-3 text-lg sm:text-xl font-bold text-red-800">
+                    {word.characters}
+                  </td>
+                  <td className="py-1.5 px-2 sm:px-3 text-red-600">
+                    {word.pinyin}
+                  </td>
+                  <td className="py-1.5 px-2 sm:px-3 text-gray-700 hidden sm:table-cell">
+                    {word.english}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );

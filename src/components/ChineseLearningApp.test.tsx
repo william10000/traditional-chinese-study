@@ -307,31 +307,32 @@ describe('ChineseLearningApp filters', () => {
     await waitFor(() => expect(getFilterCount()).toHaveTextContent(String(expected)));
 
     const section = screen.getByTestId('vocab-overview-section');
-    const cards = section.querySelectorAll('div.border-2.rounded-xl.cursor-pointer');
-    expect(cards.length).toBe(expected);
+    const rows = section.querySelectorAll('tbody tr');
+    expect(rows.length).toBe(expected);
   });
 
-  test('clicking a vocabulary overview card jumps to that flashcard and hides the answer', async () => {
+  test('clicking a vocabulary overview row jumps to that flashcard and hides the answer', async () => {
     mockLocalStorage('false');
     render(<ChineseLearningApp />);
 
     const section = await screen.findByTestId('vocab-overview-section');
-    const overviewCards = section.querySelectorAll('div.border-2.rounded-xl.cursor-pointer');
-    expect(overviewCards.length).toBeGreaterThan(1);
+    const overviewRows = section.querySelectorAll('tbody tr');
+    expect(overviewRows.length).toBeGreaterThan(1);
 
     // Reveal the current card so we can verify the click resets the answer state
     fireEvent.click(getPrimaryCard());
     await screen.findByText(/Click to hide answer/i);
 
-    const targetIndex = 1;
-    const targetWord = VOCABULARY[targetIndex];
-    const targetCard = overviewCards[targetIndex] as HTMLElement;
-    expect(targetCard).toHaveTextContent(targetWord.characters);
+    // Find a row that we can click - the table is sorted by lesson then pinyin,
+    // so we need to find a specific word and its row
+    // Column order: #, Lesson, 漢字, Pinyin, English
+    const targetRow = overviewRows[1] as HTMLElement;
+    const targetCharacters = targetRow.querySelector('td:nth-child(3)')?.textContent;
 
-    fireEvent.click(targetCard);
+    fireEvent.click(targetRow);
 
     await waitFor(() => {
-      expect(getPrimaryCharacter().textContent).toBe(targetWord.characters);
+      expect(getPrimaryCharacter().textContent).toBe(targetCharacters);
     });
     expect(within(getPrimaryCard()).getByText(/Click to reveal/i)).toBeInTheDocument();
   });
