@@ -190,13 +190,6 @@ export const FilterPanel = ({
       </div>
 
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-        <div
-          className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 px-3 py-2 rounded-lg"
-          data-testid="filter-summary"
-        >
-          <span className="font-semibold">Current Filter:</span>
-          <span>{filterSummary}</span>
-        </div>
         <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 px-3 py-2 rounded-lg justify-between">
           <span className="font-semibold">Matching Words:</span>
           <span data-testid="filter-count" className="text-lg font-bold">

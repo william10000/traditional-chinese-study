@@ -192,22 +192,6 @@ const ChineseLearningApp = () => {
           />
         )}
 
-        {/* Study Stats */}
-        {!kidMode && studyStats.total > 0 && (
-          <div className="bg-white rounded-lg p-4 mb-8 shadow-lg text-center max-w-4xl mx-auto">
-            <div className="text-lg font-semibold text-gray-700">
-              Study Progress: {studyStats.correct}/{studyStats.total} correct
-              <span className="text-green-600 ml-2">
-                (
-                {studyStats.total > 0
-                  ? Math.round((studyStats.correct / studyStats.total) * 100)
-                  : 0}
-                %)
-              </span>
-            </div>
-          </div>
-        )}
-
         {/* Kid Mode Study Stats */}
         {kidMode && studyStats.total > 0 && (
           <div
@@ -226,35 +210,37 @@ const ChineseLearningApp = () => {
             </div>
           </div>
         )}
+      
+        {kidMode && hasCards && (
+          <FlashcardSection
+            currentItem={currentItem}
+            currentCardIndex={currentCardIndex}
+            totalCards={activeCards.length}
+            studyMode={studyMode}
+            showAnswer={showAnswer}
+            setShowAnswer={setShowAnswer}
+            kidMode={kidMode}
+            onNext={nextCard}
+            onPrev={prevCard}
+            onShuffle={shuffleCards}
+            onReset={resetCards}
+            onMarkAnswer={markAnswer}
+            onPlayAudio={playAudio}
+            cardType={cardType}
+            cardDetails={currentCardDetails}
+          />
+        )}
 
-        {/* Flashcard */}
-        <FlashcardSection
-          currentItem={currentItem}
-          currentCardIndex={currentCardIndex}
-          totalCards={activeCards.length}
-          studyMode={studyMode}
-          showAnswer={showAnswer}
-          setShowAnswer={setShowAnswer}
-          kidMode={kidMode}
-          onNext={nextCard}
-          onPrev={prevCard}
-          onShuffle={shuffleCards}
-          onReset={resetCards}
-          onMarkAnswer={markAnswer}
-          onPlayAudio={playAudio}
-          cardType={cardType}
-          cardDetails={currentCardDetails}
-        />
-
-        {/* Vocabulary Overview Grid */}
-        <VocabularyOverview
-          filteredVocabulary={filteredVocabulary}
-          selectedLesson={selectedLesson}
-          cardOrder={cardOrder}
-          currentCardIndex={currentCardIndex}
-          onCardSelect={handleCardSelect}
-          kidMode={kidMode}
-        />
+        {!kidMode && (
+          <VocabularyOverview
+            filteredVocabulary={filteredVocabulary}
+            selectedLesson={selectedLesson}
+            cardOrder={cardOrder}
+            currentCardIndex={currentCardIndex}
+            onCardSelect={handleCardSelect}
+            kidMode={kidMode}
+          />
+        )}
 
         {!hasCards && (
           <div className="mt-8 bg-yellow-100 text-yellow-800 text-center p-4 rounded-lg">

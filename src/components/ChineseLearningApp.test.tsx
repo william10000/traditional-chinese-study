@@ -40,9 +40,10 @@ const getLatestByTestId = (testId: string) => {
 };
 
 describe('ChineseLearningApp flashcards', () => {
-  test('renders initial flashcard and toggles answer', () => {
-    mockLocalStorage('false'); // Kid Mode OFF to show full UI for legacy tests
+  test('renders initial flashcard and toggles answer', async () => {
+    mockLocalStorage('true');
     render(<ChineseLearningApp />);
+    await screen.findByTestId('flashcard-card');
 
     const initialCharacter = getPrimaryCharacter().textContent ?? '';
     expect(initialCharacter).not.toEqual('');
@@ -60,8 +61,9 @@ describe('ChineseLearningApp flashcards', () => {
   });
 
   test('records study progress and advances to next card', async () => {
-    mockLocalStorage('false');
+    mockLocalStorage('true');
     render(<ChineseLearningApp />);
+    await screen.findByTestId('flashcard-card');
 
     const originalCharacter = getPrimaryCharacter().textContent ?? '';
 
@@ -75,46 +77,10 @@ describe('ChineseLearningApp flashcards', () => {
     }, { timeout: 2000 });
   });
 
-  test('navigates using next and previous buttons deterministically', async () => {
-    mockLocalStorage('false');
-    render(<ChineseLearningApp />);
-
-    const getFlashcardSection = () => screen.getAllByTestId('flashcard-section')[0];
-
-    const firstCharacter = getPrimaryCharacter().textContent ?? '';
-
-    const nextButton = within(getFlashcardSection()).getAllByRole('button', { name: /Next card/i })[0];
-    fireEvent.click(nextButton);
-
-    await waitFor(() => {
-      expect(getPrimaryCharacter().textContent).not.toBe(firstCharacter);
-    }, { timeout: 2000 });
-
-    const prevButton = within(getFlashcardSection()).getAllByRole('button', { name: /Previous card/i })[0];
-    fireEvent.click(prevButton);
-
-    await waitFor(() => {
-      expect(getPrimaryCharacter().textContent).toBe(firstCharacter);
-    }, { timeout: 2000 });
-  });
-
-  test('incorrect answer increments only total (0/1, 0%)', async () => {
-    mockLocalStorage('false');
-    render(<ChineseLearningApp />);
-
-    // Reveal then mark incorrect
-    fireEvent.click(getPrimaryCard());
-    fireEvent.click(screen.getByRole('button', { name: /Incorrect/i }));
-
-    // Stats visible and correct formatting
-    await screen.findByText(/Study Progress: 0\/1 correct/i, {}, { timeout: 2000 });
-    const statsText = screen.getByText(/Study Progress: 0\/1 correct/i).parentElement?.textContent || '';
-    expect(statsText).toMatch(/\(0%\)/);
-  });
-
   test('mixed answers update correct/total and percentage rounds to 50%', async () => {
-    mockLocalStorage('false');
+    mockLocalStorage('true');
     render(<ChineseLearningApp />);
+    await screen.findByTestId('flashcard-card');
 
     // 1) correct
     fireEvent.click(getPrimaryCard());
@@ -135,37 +101,13 @@ describe('ChineseLearningApp flashcards', () => {
     expect(stats).toMatch(/\(50%\)/);
   });
 
-  test('reset clears stats, hides stats, resets index to 1 and hides answer', async () => {
+  test('does not render flashcards in normal mode', () => {
     mockLocalStorage('false');
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     render(<ChineseLearningApp />);
 
-    // Change index off 1
-    const flashcardSection = screen.getAllByTestId('flashcard-section')[0];
-    const nextButton = within(flashcardSection).getAllByRole('button', { name: /Next card/i })[0];
-    fireEvent.click(nextButton);
-    await screen.findByText(/Card 2 of /i);
-
-    // Show stats first to verify they hide later
-    fireEvent.click(getPrimaryCard());
-    fireEvent.click(screen.getByRole('button', { name: /Got It/i }));
-    await screen.findByText(/Study Progress: 1\/1 correct/i, {}, { timeout: 2000 });
-
-    // Reset via quick actions
-    const resetBtn = screen.getAllByTestId('quick-actions-reset')[0];
-    fireEvent.click(resetBtn);
-
-    // Stats hidden
-    await waitFor(() => {
-      expect(screen.queryByText(/Study Progress:/i)).toBeNull();
-    });
-    // Index reset to 1
-    expect(screen.getByText(/Card 1 of /i)).toBeInTheDocument();
-    // Answer hidden prompt visible
-    expect(within(getPrimaryCard()).getByText(/Click to reveal/i)).toBeInTheDocument();
-
-    confirmSpy.mockRestore();
+    expect(screen.queryByTestId('flashcard-section')).toBeNull();
   });
+
 });
 
 describe('ChineseLearningApp sentence flashcards', () => {
@@ -175,6 +117,11 @@ describe('ChineseLearningApp sentence flashcards', () => {
 
     // Switch to sentence mode
     fireEvent.click(screen.getByRole('button', { name: /Sentences/i }));
+    fireEvent.click(screen.getByTestId('kid-mode-toggle'));
+    await waitFor(() => {
+      expect(screen.getByTestId('kid-mode-toggle')).toHaveAttribute('aria-pressed', 'true');
+    });
+    await screen.findByTestId('flashcard-card');
 
     // Ensure a sentence appears on the front (Chinese + punctuation)
     const frontCharacterEl = getPrimaryCharacter();
@@ -195,18 +142,23 @@ describe('ChineseLearningApp sentence flashcards', () => {
 
     // Switch to sentence mode
     fireEvent.click(screen.getByRole('button', { name: /Sentences/i }));
+    fireEvent.click(screen.getByTestId('kid-mode-toggle'));
+    await waitFor(() => {
+      expect(screen.getByTestId('kid-mode-toggle')).toHaveAttribute('aria-pressed', 'true');
+    });
+    await screen.findByTestId('flashcard-card');
 
     const firstSentence = getPrimaryCharacter().textContent ?? '';
     expect(firstSentence).not.toEqual('');
 
-    const getFlashcardSection = () => screen.getAllByTestId('flashcard-section')[0];
-    const nextBtn = within(getFlashcardSection()).getAllByRole('button', { name: /Next card/i })[0];
-    fireEvent.click(nextBtn);
+    fireEvent.click(getPrimaryCard());
+    fireEvent.click(screen.getByRole('button', { name: /Got It/i }));
 
     await waitFor(() => {
       expect(getPrimaryCharacter().textContent).not.toBe(firstSentence);
     }, { timeout: 2000 });
   });
+
 });
 
 describe('ChineseLearningApp filters', () => {
@@ -311,31 +263,7 @@ describe('ChineseLearningApp filters', () => {
     expect(rows.length).toBe(expected);
   });
 
-  test('clicking a vocabulary overview row jumps to that flashcard and hides the answer', async () => {
-    mockLocalStorage('false');
-    render(<ChineseLearningApp />);
 
-    const section = await screen.findByTestId('vocab-overview-section');
-    const overviewRows = section.querySelectorAll('tbody tr');
-    expect(overviewRows.length).toBeGreaterThan(1);
-
-    // Reveal the current card so we can verify the click resets the answer state
-    fireEvent.click(getPrimaryCard());
-    await screen.findByText(/Click to hide answer/i);
-
-    // Find a row that we can click - the table is sorted by lesson then pinyin,
-    // so we need to find a specific word and its row
-    // Column order: #, Lesson, 漢字, Pinyin, English
-    const targetRow = overviewRows[1] as HTMLElement;
-    const targetCharacters = targetRow.querySelector('td:nth-child(3)')?.textContent;
-
-    fireEvent.click(targetRow);
-
-    await waitFor(() => {
-      expect(getPrimaryCharacter().textContent).toBe(targetCharacters);
-    });
-    expect(within(getPrimaryCard()).getByText(/Click to reveal/i)).toBeInTheDocument();
-  });
 
   test('filter cascade resets book and lesson to all and disables lesson appropriately', async () => {
     mockLocalStorage('false');
@@ -360,26 +288,7 @@ describe('ChineseLearningApp filters', () => {
     });
   });
 
-  test('shuffle changes order and hides answer (resets to Card 1)', async () => {
-    mockLocalStorage('false');
-    render(<ChineseLearningApp />);
 
-    // Move to another index then reveal
-    const flashcardSection = screen.getAllByTestId('flashcard-section')[0];
-    const nextButton = within(flashcardSection).getAllByRole('button', { name: /Next card/i })[0];
-    fireEvent.click(nextButton);
-    await screen.findByText(/Card 2 of /i);
-    fireEvent.click(getPrimaryCard());
-    await screen.findByText(/Click to hide answer/i);
-
-    // Shuffle via quick action
-    const shuffleBtn = within(flashcardSection).getByRole('button', { name: /Shuffle cards/i });
-    fireEvent.click(shuffleBtn);
-
-    // Verify reset state
-    expect(screen.getByText(/Card 1 of /i)).toBeInTheDocument();
-    expect(within(getPrimaryCard()).getByText(/Click to reveal/i)).toBeInTheDocument();
-  });
 
   test('zero-results empty state shows and nav controls are not rendered', async () => {
     mockLocalStorage('false');
@@ -413,22 +322,6 @@ describe('ChineseLearningApp filters', () => {
   });
 });
 
-describe('ChineseLearningApp - Card Details panel', () => {
-  test('Characters count equals length of current word characters', () => {
-    mockLocalStorage('false');
-    render(<ChineseLearningApp />);
-
-    const currentChars = (screen.getAllByTestId('flashcard-character')[0].textContent || '').trim();
-    const expectedLen = currentChars.length;
-
-    const detailsHeader = screen.getByText('Card Details');
-    const detailsPanel = detailsHeader.closest('div') as HTMLElement;
-    const charactersRow = within(detailsPanel).getByText('Characters').parentElement as HTMLElement;
-    const valueSpan = charactersRow.querySelectorAll('span')[1];
-    expect(valueSpan?.textContent).toBe(String(expectedLen));
-  });
-});
-
 describe('ChineseLearningApp - Sentence generation constraints', () => {
   const lessonRank = (lesson: string) => {
     const m = lesson.trim().match(/^L(\d+)$/i);
@@ -454,6 +347,11 @@ describe('ChineseLearningApp - Sentence generation constraints', () => {
 
     // Switch to sentence mode
     fireEvent.click(screen.getByRole('button', { name: /Sentences/i }));
+    fireEvent.click(screen.getByTestId('kid-mode-toggle'));
+    await waitFor(() => {
+      expect(screen.getByTestId('kid-mode-toggle')).toHaveAttribute('aria-pressed', 'true');
+    });
+    await screen.findByTestId('flashcard-card');
 
     // Build allowed character set from availableUpToLesson
     const cutoff = lessonRank(lesson);
@@ -540,19 +438,5 @@ describe('ChineseLearningApp - Kid Mode', () => {
       expect(screen.getByTestId('filter-panel')).toBeInTheDocument();
       expect(screen.getByText('Study Mode:')).toBeInTheDocument();
     });
-  });
-});
-
-describe('ChineseLearningApp - Reset confirmation', () => {
-  it('asks for confirmation before resetting', () => {
-    mockLocalStorage('false'); // Kid Mode OFF to render quick actions
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
-    render(<ChineseLearningApp />);
-    const resetBtn = getLatestByTestId('quick-actions-reset');
-    fireEvent.click(resetBtn);
-    expect(confirmSpy).toHaveBeenCalled();
-    confirmSpy.mockReturnValue(true);
-    fireEvent.click(getLatestByTestId('quick-actions-reset'));
-    expect(confirmSpy).toHaveBeenCalledTimes(2);
   });
 });
