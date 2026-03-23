@@ -157,6 +157,72 @@ describe('Kid Mode enhancements', () => {
     expect(speak).toHaveBeenCalledTimes(1);
   });
 
+  it('shows "I forgot" button between Incorrect and Got It after reveal', async () => {
+    mockLocalStorage(null);
+    render(<ChineseLearningApp />);
+
+    await waitFor(() => {
+      expect(getLatestByTestId('kid-mode-toggle')).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    // Reveal answer
+    fireEvent.click(getLatestByTestId('flashcard-card'));
+
+    // All three buttons should be visible in order: Incorrect, I forgot, Got It!
+    const buttons = screen.getByTestId('answer-buttons-container');
+    const allButtons = buttons.querySelectorAll('button');
+    expect(allButtons).toHaveLength(3);
+    expect(allButtons[0]).toHaveTextContent(/Incorrect/i);
+    expect(allButtons[1]).toHaveTextContent(/I forgot/i);
+    expect(allButtons[2]).toHaveTextContent(/Got It/i);
+  });
+
+  it('"I forgot" button advances card and counts as incorrect', async () => {
+    mockLocalStorage(null);
+    render(<ChineseLearningApp />);
+
+    await waitFor(() => {
+      expect(getLatestByTestId('kid-mode-toggle')).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    const originalCharacter = getLatestByTestId('flashcard-character').textContent ?? '';
+
+    // Reveal answer and click "I forgot"
+    fireEvent.click(getLatestByTestId('flashcard-card'));
+    fireEvent.click(screen.getByRole('button', { name: /I forgot/i }));
+
+    // Stats should show 0/1 correct (counted as incorrect)
+    await waitFor(() => {
+      const stats = screen.getByTestId('kid-mode-study-stats');
+      expect(stats.textContent).toMatch(/Study Progress: 0\/1 correct/);
+    });
+
+    // Card should advance
+    await waitFor(() => {
+      expect(getLatestByTestId('flashcard-character').textContent).not.toBe(originalCharacter);
+    }, { timeout: 2000 });
+  });
+
+  it('clicking play audio also reveals the flashcard', async () => {
+    mockLocalStorage(null);
+    render(<ChineseLearningApp />);
+
+    await waitFor(() => {
+      expect(getLatestByTestId('kid-mode-toggle')).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    // Card should start hidden
+    expect(getLatestByTestId('flashcard-card').textContent).toMatch(/Click to reveal/i);
+
+    // Click play audio
+    fireEvent.click(getLatestByTestId('play-audio-button'));
+
+    // Card should now be revealed (answer visible)
+    await waitFor(() => {
+      expect(getLatestByTestId('flashcard-card').textContent).toMatch(/Click to hide answer/i);
+    });
+  });
+
   it('persists Kid Mode setting to localStorage on toggle', async () => {
     const { setItem } = mockLocalStorage(null);
     render(<ChineseLearningApp />);

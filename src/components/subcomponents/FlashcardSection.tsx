@@ -78,20 +78,26 @@ export const FlashcardSection = ({
               className="bg-white rounded-xl shadow-lg p-6"
               data-testid="answer-buttons-container"
             >
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <button
                   onClick={() => onMarkAnswer(false)}
                   className="bg-red-500 text-white px-5 py-3 rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
                 >
                   <X size={20} />
-                  Incorrect
+                  Incorrect 不對
+                </button>
+                <button
+                  onClick={() => onMarkAnswer(false)}
+                  className="bg-yellow-500 text-white px-5 py-3 rounded-xl hover:bg-yellow-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
+                >
+                  I forgot 忘了
                 </button>
                 <button
                   onClick={() => onMarkAnswer(true)}
                   className="bg-green-500 text-white px-5 py-3 rounded-xl hover:bg-green-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
                 >
                   <Check size={20} />
-                  Got It!
+                  Got It! 對了
                 </button>
               </div>
             </div>
@@ -145,7 +151,7 @@ export const FlashcardSection = ({
           {kidMode && (
             <div className="mt-6" data-testid="kid-mode-primary-controls">
               <button
-                onClick={onPlayAudio}
+                onClick={() => { onPlayAudio(); setShowAnswer(true); }}
                 className="bg-blue-600 text-white px-5 py-3 rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
                 aria-label="Play audio"
                 data-testid="play-audio-button"
