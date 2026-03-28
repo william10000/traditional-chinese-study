@@ -98,6 +98,7 @@ export const useStudySession = (activeCards: { characters: string; pinyin: strin
       if (zhVoice) {
         utterance.voice = zhVoice;
       }
+      window.speechSynthesis?.cancel();
       window.speechSynthesis?.speak(utterance);
     } catch {
       // no-op if speech synthesis not available

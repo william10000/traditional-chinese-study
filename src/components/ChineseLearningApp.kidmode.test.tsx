@@ -132,13 +132,16 @@ describe('Kid Mode enhancements', () => {
     (globalThis as any).SpeechSynthesisUtterance = FakeUtterance as any;
 
     const speak = vi.fn();
+    const cancel = vi.fn();
     (window as any).speechSynthesis = {
       getVoices: () => [{ lang: 'zh-TW', name: 'Test' }],
-      speak
+      speak,
+      cancel
     };
 
     // Trigger audio
     fireEvent.click(getLatestByTestId('play-audio-button'));
+    expect(cancel).toHaveBeenCalledTimes(1);
     expect(speak).toHaveBeenCalledTimes(1);
     const utter = speak.mock.calls[0][0] as any;
     expect(utter).toBeInstanceOf(FakeUtterance);
@@ -148,9 +151,11 @@ describe('Kid Mode enhancements', () => {
 
     // Now no voices available
     speak.mockClear();
+    cancel.mockClear();
     (window as any).speechSynthesis = {
       getVoices: () => [],
-      speak
+      speak,
+      cancel
     };
     fireEvent.click(getLatestByTestId('play-audio-button'));
     // should still call speak and not throw
@@ -221,6 +226,41 @@ describe('Kid Mode enhancements', () => {
     await waitFor(() => {
       expect(getLatestByTestId('flashcard-card').textContent).toMatch(/Click to hide answer/i);
     });
+  });
+
+  it('rapid play audio presses cancel previous audio before speaking', async () => {
+    mockLocalStorage(null);
+    render(<ChineseLearningApp />);
+
+    await waitFor(() => {
+      expect(getLatestByTestId('kid-mode-toggle')).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    class FakeUtterance {
+      text: string;
+      lang: string = '';
+      rate: number = 0;
+      voice: any;
+      constructor(text: string) { this.text = text; }
+    }
+    (globalThis as any).SpeechSynthesisUtterance = FakeUtterance as any;
+
+    const speak = vi.fn();
+    const cancel = vi.fn();
+    (window as any).speechSynthesis = {
+      getVoices: () => [{ lang: 'zh-TW', name: 'Test' }],
+      speak,
+      cancel
+    };
+
+    // Rapid triple press
+    fireEvent.click(getLatestByTestId('play-audio-button'));
+    fireEvent.click(getLatestByTestId('play-audio-button'));
+    fireEvent.click(getLatestByTestId('play-audio-button'));
+
+    // Each press should cancel before speaking
+    expect(cancel).toHaveBeenCalledTimes(3);
+    expect(speak).toHaveBeenCalledTimes(3);
   });
 
   it('persists Kid Mode setting to localStorage on toggle', async () => {
