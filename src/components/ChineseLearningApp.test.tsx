@@ -68,7 +68,7 @@ describe('ChineseLearningApp flashcards', () => {
     const originalCharacter = getPrimaryCharacter().textContent ?? '';
 
     fireEvent.click(getPrimaryCard());
-    fireEvent.click(screen.getByRole('button', { name: /Got It/i }));
+    fireEvent.click(screen.getByRole('button', { name: /對了/ }));
 
     await screen.findByText(/Study Progress: 1\/1 correct/i, {}, { timeout: 2000 });
 
@@ -84,7 +84,7 @@ describe('ChineseLearningApp flashcards', () => {
 
     // 1) correct
     fireEvent.click(getPrimaryCard());
-    fireEvent.click(screen.getByRole('button', { name: /Got It/i }));
+    fireEvent.click(screen.getByRole('button', { name: /對了/ }));
     await screen.findByText(/Study Progress: 1\/1 correct/i, {}, { timeout: 2000 });
     // wait for next card to render before proceeding
     const afterFirst = getPrimaryCharacter().textContent || '';
@@ -94,7 +94,7 @@ describe('ChineseLearningApp flashcards', () => {
 
     // 2) incorrect on next card
     fireEvent.click(getPrimaryCard());
-    fireEvent.click(screen.getByRole('button', { name: /Incorrect/i }));
+    fireEvent.click(screen.getByRole('button', { name: /不對/ }));
 
     await screen.findByText(/Study Progress: 1\/2 correct/i, {}, { timeout: 2000 });
     const stats = screen.getByText(/Study Progress: 1\/2 correct/i).parentElement?.textContent || '';
@@ -152,7 +152,7 @@ describe('ChineseLearningApp sentence flashcards', () => {
     expect(firstSentence).not.toEqual('');
 
     fireEvent.click(getPrimaryCard());
-    fireEvent.click(screen.getByRole('button', { name: /Got It/i }));
+    fireEvent.click(screen.getByRole('button', { name: /對了/ }));
 
     await waitFor(() => {
       expect(getPrimaryCharacter().textContent).not.toBe(firstSentence);

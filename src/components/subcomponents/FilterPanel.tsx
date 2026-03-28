@@ -16,7 +16,6 @@ interface FilterPanelProps {
   setStudyMode: (mode: "sequential" | "random") => void;
   cardType: "word" | "sentence";
   setCardType: (type: "word" | "sentence") => void;
-  filterSummary: string;
   filteredVocabulary: VocabularyWord[];
   onGenerateWorksheet: () => void;
   ALL_OPTION: string;
@@ -36,7 +35,6 @@ export const FilterPanel = ({
   setStudyMode,
   cardType,
   setCardType,
-  filterSummary,
   filteredVocabulary,
   onGenerateWorksheet,
   ALL_OPTION,

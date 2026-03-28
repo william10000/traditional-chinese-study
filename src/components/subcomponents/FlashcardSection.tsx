@@ -3,8 +3,6 @@ import {
   ChevronRight,
   RotateCcw,
   Shuffle,
-  Check,
-  X,
   Volume2,
 } from "lucide-react";
 import { formatLessonLabel } from "../../utils/textUtils";
@@ -81,23 +79,21 @@ export const FlashcardSection = ({
               <div className="grid grid-cols-3 gap-3">
                 <button
                   onClick={() => onMarkAnswer(false)}
-                  className="bg-red-500 text-white px-5 py-3 rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
+                  className="bg-red-500 text-white px-5 py-3 rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full text-lg"
                 >
-                  <X size={20} />
-                  Incorrect 不對
+                  不對
                 </button>
                 <button
                   onClick={() => onMarkAnswer(false)}
-                  className="bg-yellow-500 text-white px-5 py-3 rounded-xl hover:bg-yellow-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
+                  className="bg-yellow-500 text-white px-5 py-3 rounded-xl hover:bg-yellow-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full text-lg"
                 >
-                  I forgot 忘了
+                  忘了
                 </button>
                 <button
                   onClick={() => onMarkAnswer(true)}
-                  className="bg-green-500 text-white px-5 py-3 rounded-xl hover:bg-green-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full"
+                  className="bg-green-500 text-white px-5 py-3 rounded-xl hover:bg-green-600 transition-colors flex items-center justify-center gap-2 shadow-lg w-full text-lg"
                 >
-                  <Check size={20} />
-                  Got It! 對了
+                  對了
                 </button>
               </div>
             </div>

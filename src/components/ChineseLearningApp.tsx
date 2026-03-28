@@ -24,7 +24,6 @@ const ChineseLearningApp = () => {
     lessonOptions,
     filteredVocabulary,
     activeCards,
-    filterSummary,
     ALL_OPTION,
   } = useVocabularyFilter();
 
@@ -185,7 +184,6 @@ const ChineseLearningApp = () => {
             setStudyMode={setStudyMode}
             cardType={cardType}
             setCardType={setCardType}
-            filterSummary={filterSummary}
             filteredVocabulary={filteredVocabulary}
             onGenerateWorksheet={generateWorksheet}
             ALL_OPTION={ALL_OPTION}

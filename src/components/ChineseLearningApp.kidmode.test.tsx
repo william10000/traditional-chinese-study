@@ -35,9 +35,9 @@ describe('Kid Mode enhancements', () => {
     // Reveal answer by clicking the card
     fireEvent.click(getLatestByTestId('flashcard-card'));
 
-    // Answer buttons visible
-    expect(screen.getByRole('button', { name: /Incorrect/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Got It!/i })).toBeInTheDocument();
+    // Answer buttons visible (Chinese-only labels)
+    expect(screen.getByRole('button', { name: /不對/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /對了/ })).toBeInTheDocument();
   });
 
   it('shows and updates study progress in Kid Mode after answering', async () => {
@@ -55,7 +55,7 @@ describe('Kid Mode enhancements', () => {
     });
 
     // Mark as correct to increment stats
-    fireEvent.click(screen.getByRole('button', { name: /Got It!/i }));
+    fireEvent.click(screen.getByRole('button', { name: /對了/ }));
 
     // Stats should now appear
     await waitFor(() => {
@@ -70,7 +70,7 @@ describe('Kid Mode enhancements', () => {
     await waitFor(() => {
       expect(screen.getByTestId('answer-buttons-container')).toBeInTheDocument();
     });
-    fireEvent.click(screen.getByRole('button', { name: /Incorrect/i }));
+    fireEvent.click(screen.getByRole('button', { name: /不對/ }));
 
     // Stats should update (at least total increments)
     await waitFor(() => {
@@ -92,7 +92,7 @@ describe('Kid Mode enhancements', () => {
     await waitFor(() => {
       expect(screen.getByTestId('answer-buttons-container')).toBeInTheDocument();
     });
-    fireEvent.click(screen.getByRole('button', { name: /Got It!/i }));
+    fireEvent.click(screen.getByRole('button', { name: /對了/ }));
 
     // Allow next card to load
     await waitForCardTransition();
@@ -102,7 +102,7 @@ describe('Kid Mode enhancements', () => {
     await waitFor(() => {
       expect(screen.getByTestId('answer-buttons-container')).toBeInTheDocument();
     });
-    fireEvent.click(screen.getByRole('button', { name: /Incorrect/i }));
+    fireEvent.click(screen.getByRole('button', { name: /不對/ }));
 
     // Assert exact 1/2 and 50%
     const stats = await screen.findByTestId('kid-mode-study-stats');
@@ -157,7 +157,7 @@ describe('Kid Mode enhancements', () => {
     expect(speak).toHaveBeenCalledTimes(1);
   });
 
-  it('shows "I forgot" button between Incorrect and Got It after reveal', async () => {
+  it('shows Chinese-only buttons (不對, 忘了, 對了) in order after reveal', async () => {
     mockLocalStorage(null);
     render(<ChineseLearningApp />);
 
@@ -168,13 +168,13 @@ describe('Kid Mode enhancements', () => {
     // Reveal answer
     fireEvent.click(getLatestByTestId('flashcard-card'));
 
-    // All three buttons should be visible in order: Incorrect, I forgot, Got It!
+    // All three buttons should be visible with Chinese-only labels (no English)
     const buttons = screen.getByTestId('answer-buttons-container');
     const allButtons = buttons.querySelectorAll('button');
     expect(allButtons).toHaveLength(3);
-    expect(allButtons[0]).toHaveTextContent(/Incorrect/i);
-    expect(allButtons[1]).toHaveTextContent(/I forgot/i);
-    expect(allButtons[2]).toHaveTextContent(/Got It/i);
+    expect(allButtons[0].textContent).toBe('不對');
+    expect(allButtons[1].textContent).toBe('忘了');
+    expect(allButtons[2].textContent).toBe('對了');
   });
 
   it('"I forgot" button advances card and counts as incorrect', async () => {
@@ -189,7 +189,7 @@ describe('Kid Mode enhancements', () => {
 
     // Reveal answer and click "I forgot"
     fireEvent.click(getLatestByTestId('flashcard-card'));
-    fireEvent.click(screen.getByRole('button', { name: /I forgot/i }));
+    fireEvent.click(screen.getByRole('button', { name: /忘了/ }));
 
     // Stats should show 0/1 correct (counted as incorrect)
     await waitFor(() => {
