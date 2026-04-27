@@ -711,6 +711,7 @@ export const VOCABULARY: VocabularyWord[] = [
   { pinyin: 'tā men', characters: '牠們', english: 'they / them (used for animals)', lesson: 'L8', book: 'B', level: '2' },
   { pinyin: 'tù zi', characters: '兔子', english: 'rabbit', lesson: 'L8', book: 'B', level: '2' },
   { pinyin: 'wèi', characters: '餵', english: 'to feed', lesson: 'L8', book: 'B', level: '2' },
+  { pinyin: 'guò', characters: '過', english: 'already or to pass', lesson: 'L8', book: 'B', level: '2' },
   { pinyin: 'yǎng', characters: '養', english: 'to raise', lesson: 'L8', book: 'B', level: '2' },
   { pinyin: 'zhī', characters: '隻', english: '(measure word for animals)', lesson: 'L8', book: 'B', level: '2' },
   // Level 2 Book B - L9 (Directions)
